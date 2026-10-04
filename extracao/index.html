@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Extração RS iBTK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Mesa de extração: catálogo de estudos à esquerda, ficha de extração por seções à direita */
+:root{
+  --bg:#f3f4f7; --panel:#ffffff; --ink:#1b2133; --muted:#5d6479; --line:#dfe2ea; --soft:#eceef4;
+  --accent:#2f4fa8; --accent-ink:#ffffff; --accent-soft:#e3e9f8;
+  --ok:#1e7a4f; --ok-soft:#dff2e8; --warn:#9a6200; --warn-soft:#fbefd6; --bad:#b3261e; --bad-soft:#fbe2df;
+  --f-ui:"Libre Franklin",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-read:"Newsreader",Georgia,"Times New Roman",serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:8px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12151d; --panel:#1a1e29; --ink:#e7e9f0; --muted:#9aa1b5; --line:#2c3242; --soft:#232838;
+  --accent:#8ea8ff; --accent-ink:#0f1320; --accent-soft:#25304f;
+  --ok:#6fd3a0; --ok-soft:#173528; --warn:#f0bf63; --warn-soft:#3a2d12; --bad:#ff8f86; --bad-soft:#3d1c1a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12151d; --panel:#1a1e29; --ink:#e7e9f0; --muted:#9aa1b5; --line:#2c3242; --soft:#232838;
+  --accent:#8ea8ff; --accent-ink:#0f1320; --accent-soft:#25304f;
+  --ok:#6fd3a0; --ok-soft:#173528; --warn:#f0bf63; --warn-soft:#3a2d12; --bad:#ff8f86; --bad-soft:#3d1c1a; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--f-ui);display:flex;flex-direction:column}
+[hidden]{display:none!important}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto;min-width:0}
+.brand h1{margin:0;font-size:17px;font-weight:700}
+.brand span{color:var(--muted);font-size:12px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tab,.pillbtn{border:1px solid var(--line);background:transparent;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:500}
+.tab[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.who{font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center}
+.notice{padding:8px 16px;background:var(--warn-soft);font-size:13px;border-bottom:1px solid var(--line)}
+
+.view{flex:1;min-height:0;display:flex}
+.desk{flex:1;min-height:0;display:grid;grid-template-columns:300px minmax(0,1fr)}
+.col{min-height:0;overflow:auto}
+.list{border-right:1px solid var(--line);background:var(--panel)}
+.lhead{position:sticky;top:0;background:var(--panel);padding:12px 14px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted);z-index:1}
+.st{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;width:100%;text-align:left;padding:12px 14px;border:0;border-bottom:1px solid var(--line);border-left:3px solid transparent;background:transparent}
+.st[aria-current="true"]{background:var(--accent-soft);border-left-color:var(--accent)}
+.st b{font-weight:600;font-size:13px}
+.st small{grid-column:1;color:var(--muted);font-size:11px}
+.pill{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap;align-self:start;background:var(--soft);color:var(--muted)}
+.p-rascunho{background:var(--warn-soft);color:var(--warn)}
+.p-concluida{background:var(--ok-soft);color:var(--ok)}
+.p-consenso{background:var(--accent-soft);color:var(--accent)}
+
+.form{padding:20px clamp(16px,3vw,36px) 120px}
+.sheet{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.shead{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline}
+.shead h2{margin:0;font-family:var(--f-read);font-weight:500;font-size:24px;text-wrap:balance}
+.ref{color:var(--muted);font-size:12px;max-width:90ch}
+.secnav{position:sticky;top:0;z-index:2;background:var(--bg);display:flex;gap:6px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line)}
+.secnav a{font-size:12px;color:var(--ink);text-decoration:none;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel)}
+fieldset.sec{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:16px 18px 18px;margin:0;display:flex;flex-direction:column;gap:12px;scroll-margin-top:56px}
+fieldset.sec legend{font-weight:700;font-size:14px;padding:0 6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f.wide{grid-column:1/-1}
+.f label{font-size:12px;color:var(--muted)}
+.f .help{font-size:11px;color:var(--muted)}
+input[type=text],input[type=number],select,textarea{padding:7px 9px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg);width:100%;min-width:0}
+textarea{min-height:64px;resize:vertical}
+input:disabled,select:disabled,textarea:disabled{opacity:.85;background:var(--soft)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r)}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th,td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:11px;color:var(--muted);font-weight:600;background:var(--soft);white-space:nowrap}
+td input,td select{padding:4px 6px;font-size:12px}
+td.num input{width:68px}
+.rowdel{border:0;background:transparent;color:var(--bad);font-size:16px;line-height:1}
+.addrow{align-self:flex-start;border:1px dashed var(--line);background:transparent;border-radius:var(--r);padding:6px 12px;font-size:13px}
+.bar{position:sticky;bottom:0;z-index:3;background:var(--panel);border-top:1px solid var(--line);padding:10px clamp(16px,3vw,36px);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.form .bar{max-width:980px;margin:12px auto 0;border:1px solid var(--line);border-radius:12px;box-shadow:0 -6px 18px -12px rgba(15,20,40,.35);bottom:12px}
+.save{font-size:12px;color:var(--muted);margin-right:auto}
+.save[data-s="ok"]{color:var(--ok)} .save[data-s="err"]{color:var(--bad)}
+.primary{background:var(--accent);color:var(--accent-ink);border:0;border-radius:var(--r);padding:9px 16px;font-weight:600}
+.primary:disabled{opacity:.5;cursor:not-allowed}
+.ghost{border:1px solid var(--line);background:transparent;border-radius:var(--r);padding:8px 14px}
+.checks{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:var(--r);font-size:13px}
+.checks.err{background:var(--bad-soft)} .checks.warn{background:var(--warn-soft)}
+.checks ul{margin:0;padding-left:18px}
+.empty{padding:40px 20px;text-align:center;color:var(--muted)}
+.lock{background:var(--ok-soft);color:var(--ok);padding:10px 14px;border-radius:var(--r);font-size:13px}
+
+/* consenso */
+.cmp{display:grid;grid-template-columns:minmax(140px,220px) minmax(0,1fr) minmax(0,1fr) minmax(0,1.2fr);gap:0;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--panel)}
+.cmp>div{padding:8px 10px;border-bottom:1px solid var(--line);min-width:0;overflow-wrap:anywhere;font-size:13px}
+.cmp .h{background:var(--soft);font-size:11px;font-weight:600;color:var(--muted)}
+.cmp .diff{background:var(--warn-soft)}
+.cmp .lab{color:var(--muted);font-size:12px}
+.mini{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:1px 7px;font-size:11px;margin-left:6px}
+.page{flex:1;overflow:auto;padding:20px clamp(16px,3vw,36px) 60px}
+.page .in{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.card h3{margin:0;font-size:15px}
+
+.login{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;padding:24px 16px;overflow:auto}
+.login form{max-width:420px;width:100%;margin:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:12px}
+.login h2{margin:0;font-family:var(--f-read);font-weight:500;font-size:24px}
+.login p{margin:0;color:var(--muted);font-size:13px}
+.err{color:var(--bad);font-size:13px;min-height:1em}
+
+@media (max-width:820px){.desk{grid-template-columns:1fr}.desk.open .list{display:none}.desk:not(.open) .form{display:none}.cmp{grid-template-columns:1fr}.cmp .h{display:none}}
+.back{display:none}
+@media (max-width:820px){.back{display:inline-block}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><h1>Extração</h1><span>RS · troca de iBTK por intolerância</span></div>
+  <nav class="tabs" id="tabs"></nav>
+  <div class="who"><span id="whoami"></span><button class="pillbtn" id="sair" hidden>Sair</button></div>
+</header>
+<div class="notice" id="notice" hidden></div>
+<main class="view" id="view"></main>
+
+<section class="login" id="login" hidden>
+  <form id="lform" novalidate>
+    <h2>Entrar</h2>
+    <p>Use o mesmo e-mail e senha da Revisão iBTK. O acesso à extração é só para a equipe da revisão sistemática.</p>
+    <label class="f"><span>E-mail</span><input id="lemail" type="text" autocomplete="username"></label>
+    <label class="f"><span>Senha</span><input id="lsenha" type="password" autocomplete="current-password"></label>
+    <p class="err" id="lerr" role="alert"></p>
+    <button class="primary" type="submit" id="lok">Entrar</button>
+  </form>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script>if(!window.supabase)document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"><\/script>')</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="../config.js?v=3"></script>
+<script>
+/* ======================================================= esquema da ficha */
+const SN=["sim","não","incerto"];
+const CATS=["fibrilação atrial ou flutter","outras arritmias","sangramento ou hematoma","hipertensão","artralgia ou mialgia","diarreia","cefaleia","infecção","exantema","citopenias","outros"];
+const IBTK=["acalabrutinibe","ibrutinibe","pirtobrutinibe","zanubrutinibe","outro"];
+const SECOES=[
+ {id:"A",titulo:"A. Identificação e elegibilidade",campos:[
+  {k:"elegivel",l:"Elegível para a revisão?",t:"sel",o:SN,req:1},
+  {k:"motivo_inelegivel",l:"Motivo, se não elegível ou incerto",t:"text"},
+  {k:"publicacoes",l:"Publicações desta coorte (uma por linha)",t:"area",w:1,h:"Uma coorte = uma entrada. Liste todas as publicações e cortes de dados."},
+  {k:"pub_referencia",l:"Publicação usada na extração",t:"text",w:1,h:"Corte mais recente com dados completos"},
+  {k:"corte_dados",l:"Data do corte de dados",t:"text",h:"AAAA-MM-DD ou como informado"},
+  {k:"desenho",l:"Desenho",t:"sel",o:["ensaio fase 1/2","ensaio fase 2","ensaio fase 3","subgrupo de ensaio","coorte prospectiva","coorte retrospectiva","outro"]},
+  {k:"registro",l:"Registro (NCT etc.)",t:"text"},
+  {k:"paises",l:"Países",t:"text"},
+  {k:"patrocinio",l:"Patrocínio",t:"sel",o:["fabricante do iBTK de destino","outro fabricante","público ou acadêmico","nenhum","não informado"]},
+  {k:"patrocinador_nome",l:"Patrocinador (nome)",t:"text"},
+  {k:"vinculos_autores",l:"Vínculos declarados dos autores com fabricantes",t:"area",w:1}]},
+ {id:"B",titulo:"B. População",campos:[
+  {k:"n_intolerantes",l:"Pacientes intolerantes que trocaram (N)",t:"int"},
+  {k:"n_llc",l:"N com LLC/LLPC",t:"int"},{k:"n_lcm",l:"N com linfoma do manto",t:"int"},
+  {k:"n_mw",l:"N com Waldenström",t:"int"},{k:"n_lzm",l:"N com zona marginal",t:"int"},{k:"n_outras",l:"N com outras",t:"int"},
+  {k:"idade_mediana",l:"Idade mediana (anos)",t:"num"},
+  {k:"linhas_previas",l:"Linhas prévias (mediana)",t:"num"},
+  {k:"criterio_intolerancia",l:"Critério de intolerância",t:"sel",o:["explícito no protocolo","julgamento do investigador","não informado"]},
+  {k:"criterio_texto",l:"Critério (transcrição)",t:"area",w:1},
+  {k:"n_orig_ibrutinibe",l:"Origem: ibrutinibe (N)",t:"int"},{k:"n_orig_acalabrutinibe",l:"Origem: acalabrutinibe (N)",t:"int"},
+  {k:"n_orig_zanubrutinibe",l:"Origem: zanubrutinibe (N)",t:"int"},{k:"n_orig_pirtobrutinibe",l:"Origem: pirtobrutinibe (N)",t:"int"},
+  {k:"n_orig_experimental",l:"Origem: iBTK experimental (N)",t:"int"},{k:"orig_experimental_nomes",l:"Quais experimentais",t:"text"},
+  {k:"intervalo_meses",l:"Intervalo entre o iBTK anterior e o novo (mediana, meses)",t:"num"},
+  {k:"periodo_inclusao",l:"Período de inclusão",t:"text"},
+  {k:"pandemia",l:"Coincide com a pandemia de COVID-19?",t:"sel",o:["sim","parcial","não","não informado"]}]},
+ {id:"C",titulo:"C. iBTK de destino",campos:[
+  {k:"ibtk_destino",l:"iBTK de destino",t:"sel",o:IBTK},
+  {k:"dose",l:"Dose",t:"text"},
+  {k:"seguimento_meses",l:"Seguimento mediano (meses)",t:"num"}]},
+ {id:"D",titulo:"D. Recorrência por categoria de evento",tabela:"desfechos",cols:[
+  {k:"categoria",l:"Categoria",t:"sel",o:CATS},
+  {k:"termo",l:"Termo no artigo",t:"text"},
+  {k:"correspondencia",l:"Correspondência",t:"sel",o:["mesmo termo","categoria agrupada","categoria ampla"]},
+  {k:"unidade",l:"Unidade",t:"sel",o:["paciente","evento"]},
+  {k:"denominador",l:"Denominador",t:"int",num:1},
+  {k:"recorrencias",l:"Recorrências",t:"int",num:1},
+  {k:"g_menor",l:"Grau menor",t:"int",num:1},{k:"g_igual",l:"Grau igual",t:"int",num:1},{k:"g_maior",l:"Grau maior",t:"int",num:1},
+  {k:"g3mais",l:"Grau ≥ 3",t:"int",num:1},
+  {k:"fonte",l:"Fonte (tabela, figura, página)",t:"text"}]},
+ {id:"E",titulo:"E. Desfechos globais",campos:[
+  {k:"eventos_total",l:"Eventos de intolerância prévios (total)",t:"int"},
+  {k:"eventos_recorridos",l:"Desses, recorreram",t:"int"},
+  {k:"pac_recorrencia",l:"Pacientes com recorrência de qualquer evento prévio",t:"int"},
+  {k:"desc_ea_n",l:"Nova descontinuação por evento adverso (n)",t:"int"},
+  {k:"desc_ea_den",l:"… denominador",t:"int"},
+  {k:"desc_mesmo_evento",l:"Descontinuação pelo mesmo evento (n)",t:"int"},
+  {k:"orr_n",l:"Resposta global (n)",t:"int"},{k:"orr_den",l:"… denominador",t:"int"},
+  {k:"orr_doenca",l:"Resposta: doença e critério",t:"text",h:"Ex.: LLC, iwCLL 2018"},
+  {k:"slp_mediana",l:"SLP mediana (meses)",t:"num",h:"Vazio se não atingida"},
+  {k:"slp_na",l:"SLP mediana não atingida?",t:"sel",o:["sim","não"]},
+  {k:"slp12",l:"SLP em 12 meses (%)",t:"num"},{k:"slp24",l:"SLP em 24 meses (%)",t:"num"}]},
+ {id:"F",titulo:"F. Notas",campos:[
+  {k:"contato_autores",l:"Precisa contatar os autores?",t:"sel",o:["sim","não"]},
+  {k:"dados_faltantes",l:"O que falta pedir aos autores",t:"area",w:1},
+  {k:"notas",l:"Notas e dúvidas",t:"area",w:1}]}
+];
+const CAMPOS=SECOES.flatMap(s=>s.campos||[]);
+const COLS=SECOES.find(s=>s.tabela).cols;
+
+/* ======================================================= utilidades */
+const $=s=>document.querySelector(s);
+const el=(t,a={},...c)=>{const e=document.createElement(t);for(const[k,v]of Object.entries(a)){if(k==="class")e.className=v;else if(k==="text")e.textContent=v;else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else if(v!==false&&v!=null)e.setAttribute(k,v===true?"":v)}for(const x of c.flat()){if(x==null)continue;e.append(x.nodeType?x:document.createTextNode(x))}return e};
+const vazio=v=>v==null||v==="";
+const N=v=>vazio(v)?null:Number(v);
+const fmt=v=>vazio(v)?"—":String(v);
+function notice(t){const n=$("#notice");n.textContent=t||"";n.hidden=!t}
+
+/* ======================================================= estado e dados */
+const CFG=window.REVISAO_CONFIG||{};
+let SB=null;
+const S={uid:null,email:"",autor:false,papel:null,estudos:[],minhas:{},todas:[],consenso:{},view:"extrair",sel:null,selC:null};
+const ok=()=>/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(CFG.url||"")&&(CFG.chave||"").length>30&&!!window.supabase;
+
+async function q(p){const {data,error}=await p;if(error)throw error;return data}
+async function carregar(){
+  S.estudos=await q(SB.from("rs_estudos").select("*").order("id"));
+  const ext=await q(SB.from("rs_extracoes").select("*"));
+  S.minhas={};S.todas=ext;for(const x of ext)if(x.user_id===S.uid)S.minhas[x.estudo_id]=x;
+  S.consenso={};for(const c of await q(SB.from("rs_consenso").select("*")))S.consenso[c.estudo_id]=c;
+}
+
+/* ======================================================= cabeçalho e abas */
+function abas(){
+  const t=[];if(S.papel==="extrator")t.push(["extrair","Extrair"]);
+  if(S.autor||S.papel==="adjudicador")t.push(["consenso","Consenso"]);
+  if(S.autor)t.push(["estudos","Estudos e equipe"]);
+  t.push(["exportar","Exportar planilha"]);
+  if(!t.some(x=>x[0]===S.view))S.view=t[0][0];
+  $("#tabs").replaceChildren(...t.map(([k,l])=>el("button",{class:"tab","aria-pressed":S.view===k?"true":"false",text:l,onclick:()=>{S.view=k;render()}})));
+}
+function render(){abas();({extrair:vExtrair,consenso:vConsenso,estudos:vEstudos,exportar:vExportar})[S.view]()}
+
+/* ======================================================= EXTRAIR */
+function statusPill(e){const m=S.minhas[e.id];const c=S.consenso[e.id];
+  if(c)return el("span",{class:"pill p-consenso",text:"Consenso feito"});
+  if(!m)return el("span",{class:"pill",text:"Não iniciada"});
+  return el("span",{class:"pill p-"+m.status,text:m.status==="concluida"?"Concluída":"Rascunho"})}
+function vExtrair(){
+  const desk=el("div",{class:"desk"+(S.sel?" open":"")});
+  const list=el("aside",{class:"col list"},el("div",{class:"lhead",text:S.estudos.length+" estudos · "+Object.values(S.minhas).filter(m=>m.status==="concluida").length+" concluídos por você"}),
+    S.estudos.map(e=>el("button",{class:"st","aria-current":S.sel===e.id?"true":"false",onclick:()=>{S.sel=e.id;vExtrair()}},el("b",{text:e.rotulo}),statusPill(e),el("small",{text:e.coorte||e.id}))));
+  const form=el("section",{class:"col form",id:"formcol"});
+  desk.append(list,form);$("#view").replaceChildren(desk);
+  if(!S.sel){form.append(el("div",{class:"empty",text:"Escolha um estudo na lista para extrair."}));return}
+  ficha(form,S.estudos.find(e=>e.id===S.sel));
+}
+let rascunho=null,timer=null,gravando=false,pendente=false;
+function ficha(box,e){
+  const m=S.minhas[e.id];const travada=m?.status==="concluida";
+  rascunho=JSON.parse(JSON.stringify(m?.dados||{}));if(!Array.isArray(rascunho.desfechos))rascunho.desfechos=[];
+  const sheet=el("div",{class:"sheet"},
+    el("button",{class:"ghost back",text:"← Estudos",onclick:()=>{S.sel=null;vExtrair()}}),
+    el("div",{class:"shead"},el("h2",{text:e.rotulo})),
+    el("div",{class:"ref",text:e.referencia+(e.doi?" DOI: "+e.doi:"")}),
+    travada?el("div",{class:"lock",text:"Extração concluída em "+new Date(m.concluida_em).toLocaleString("pt-BR")+". Ela não pode mais ser alterada; correções entram no consenso."}):null,
+    el("nav",{class:"secnav"},SECOES.map(s=>el("a",{href:"#sec-"+s.id,text:s.titulo.split(". ")[0]+". "+s.titulo.split(". ")[1].split(" ")[0],onclick:ev=>{ev.preventDefault();document.getElementById("sec-"+s.id).scrollIntoView({behavior:"smooth"})}}))),
+    SECOES.map(s=>secao(s,rascunho,travada)),
+    el("div",{id:"checks"}));
+  const bar=el("div",{class:"bar"},el("span",{class:"save",id:"save",text:travada?"Somente leitura":(m?"Salvo":"Ainda não salvo")}),
+    travada?null:el("button",{class:"ghost",text:"Verificar",onclick:()=>mostrarChecks(false)}),
+    travada?null:el("button",{class:"primary",id:"concluir",text:"Concluir extração",onclick:()=>mostrarChecks(true)}));
+  box.replaceChildren(sheet,bar);
+}
+function campo(c,obj,dis,onch){
+  const id="c-"+c.k+"-"+Math.random().toString(36).slice(2,7);let inp;
+  if(c.t==="sel"){inp=el("select",{id,disabled:dis},el("option",{value:"",text:"—"}),c.o.map(o=>el("option",{value:o,text:o})));inp.value=obj[c.k]??""}
+  else if(c.t==="area"){inp=el("textarea",{id,disabled:dis});inp.value=obj[c.k]??""}
+  else{inp=el("input",{id,type:c.t==="text"?"text":"number",step:c.t==="int"?"1":"any",min:c.t==="text"?null:"0",disabled:dis});inp.value=obj[c.k]??""}
+  inp.addEventListener("input",()=>{let v=inp.value;if(c.t==="int"||c.t==="num")v=v===""?"":Number(v);obj[c.k]=v;onch&&onch()});
+  return {inp,id};
+}
+function secao(s,d,dis){
+  const fs=el("fieldset",{class:"sec",id:"sec-"+s.id},el("legend",{text:s.titulo}));
+  if(s.campos){fs.append(el("div",{class:"grid"},s.campos.map(c=>{const {inp,id}=campo(c,d,dis,agendar);
+    return el("div",{class:"f"+(c.w?" wide":"")},el("label",{for:id,text:c.l+(c.req?" *":"")}),inp,c.h?el("span",{class:"help",text:c.h}):null)})));return fs}
+  const tbody=el("tbody");
+  const desenhar=()=>{tbody.replaceChildren(...d.desfechos.map((r,i)=>el("tr",{},s.cols.map(c=>{const {inp}=campo(c,r,dis,agendar);inp.setAttribute("aria-label",c.l+" (linha "+(i+1)+")");return el("td",{class:c.num?"num":""},inp)}),
+    el("td",{},dis?null:el("button",{class:"rowdel",title:"Remover linha",text:"×",onclick:()=>{d.desfechos.splice(i,1);desenhar();agendar()}})))));
+    if(!d.desfechos.length)tbody.append(el("tr",{},el("td",{colspan:s.cols.length+1,class:"help",text:"Nenhuma categoria ainda. Uma linha por categoria de evento que motivou a troca."})))};
+  desenhar();
+  fs.append(el("span",{class:"help",text:"Uma linha por categoria. Denominador: pacientes (ou eventos) que trocaram por aquela categoria. Recorrência: mesma categoria após a troca."}),
+    el("div",{class:"tablewrap"},el("table",{},el("thead",{},el("tr",{},s.cols.map(c=>el("th",{text:c.l})),el("th"))),tbody)),
+    dis?null:el("button",{class:"addrow",text:"+ Adicionar categoria",onclick:()=>{d.desfechos.push({});desenhar()}}));
+  return fs;
+}
+function setSave(s,t){const n=$("#save");if(n){n.dataset.s=s;n.textContent=t}}
+function agendar(){setSave("","Salvando…");clearTimeout(timer);timer=setTimeout(()=>gravar("rascunho"),900)}
+async function gravar(status){
+  if(gravando){pendente=true;return}
+  gravando=true;pendente=false;const id=S.sel;
+  try{
+    const row={user_id:S.uid,estudo_id:id,dados:rascunho,status};
+    const r=await q(SB.from("rs_extracoes").upsert(row,{onConflict:"user_id,estudo_id"}).select().single());
+    S.minhas[id]=r;setSave("ok","Salvo às "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}));
+  }catch(e){setSave("err","Não foi possível salvar: "+(e.message||e));gravando=false;throw e}
+  gravando=false;if(pendente)gravar("rascunho");
+}
+function validar(d){
+  const er=[],av=[];const n=k=>N(d[k]);
+  if(vazio(d.elegivel))er.push("Responda se o estudo é elegível (seção A).");
+  if(d.elegivel==="sim"){
+    if(vazio(d.ibtk_destino))er.push("Informe o iBTK de destino (seção C).");
+    if(n("n_intolerantes")==null)er.push("Informe o N de pacientes intolerantes (seção B).");
+    if(!d.desfechos.length)er.push("Inclua ao menos uma categoria de evento (seção D), ou registre em F por que não há dados.");
+  }
+  d.desfechos.forEach((r,i)=>{const L="Linha "+(i+1)+" da seção D";
+    if(vazio(r.categoria))er.push(L+": escolha a categoria.");
+    if(vazio(r.unidade))er.push(L+": informe a unidade (paciente ou evento).");
+    const den=N(r.denominador),rec=N(r.recorrencias);
+    if(den!=null&&rec!=null&&rec>den)er.push(L+": recorrências maiores que o denominador.");
+    const sg=[r.g_menor,r.g_igual,r.g_maior].map(N).filter(x=>x!=null).reduce((a,b)=>a+b,0);
+    if(rec!=null&&sg>rec)er.push(L+": a soma dos graus passa do número de recorrências.");
+    if(rec!=null&&N(r.g3mais)!=null&&N(r.g3mais)>rec)er.push(L+": recorrências grau ≥ 3 maiores que o total de recorrências.");
+    if(vazio(r.fonte))av.push(L+": sem fonte (tabela, figura ou página).");
+    if(vazio(r.correspondencia))av.push(L+": nível de correspondência não informado.");
+  });
+  if(n("eventos_recorridos")!=null&&n("eventos_total")!=null&&n("eventos_recorridos")>n("eventos_total"))er.push("Seção E: eventos recorridos maiores que o total.");
+  if(n("desc_ea_n")!=null&&n("desc_ea_den")!=null&&n("desc_ea_n")>n("desc_ea_den"))er.push("Seção E: descontinuações maiores que o denominador.");
+  if(n("orr_n")!=null&&n("orr_den")!=null&&n("orr_n")>n("orr_den"))er.push("Seção E: respostas maiores que o denominador.");
+  const N0=n("n_intolerantes");
+  if(N0!=null){const so=["ibrutinibe","acalabrutinibe","zanubrutinibe","pirtobrutinibe","experimental"].map(x=>n("n_orig_"+x)).filter(x=>x!=null);
+    if(so.length&&so.reduce((a,b)=>a+b,0)!==N0)av.push("Seção B: a soma das origens difere do N de intolerantes (pode ser legítimo se um paciente teve mais de um iBTK).");
+    const sd=["n_llc","n_lcm","n_mw","n_lzm","n_outras"].map(n).filter(x=>x!=null);
+    if(sd.length&&sd.reduce((a,b)=>a+b,0)!==N0)av.push("Seção B: a soma por doença difere do N de intolerantes.");}
+  if(d.elegivel!=="sim"&&vazio(d.motivo_inelegivel))av.push("Seção A: registre o motivo da não elegibilidade.");
+  return {er,av};
+}
+function mostrarChecks(concluir){
+  const {er,av}=validar(rascunho);const box=$("#checks");
+  const parts=[];
+  if(er.length)parts.push(el("div",{class:"checks err"},el("b",{text:"Corrija antes de concluir"}),el("ul",{},er.map(x=>el("li",{text:x})))));
+  if(av.length)parts.push(el("div",{class:"checks warn"},el("b",{text:"Avisos (não impedem a conclusão)"}),el("ul",{},av.map(x=>el("li",{text:x})))));
+  if(!er.length&&!av.length)parts.push(el("div",{class:"checks warn",style:"background:var(--ok-soft)"},el("b",{text:"Nenhum problema encontrado."})));
+  if(concluir&&!er.length){parts.push(el("div",{class:"card"},
+    el("b",{text:"Concluir a extração deste estudo?"}),
+    el("span",{class:"help",text:"Depois de concluída, a ficha não pode mais ser alterada. Quando o outro extrator também concluir, as duas ficam visíveis para o consenso."}),
+    el("div",{style:"display:flex;gap:8px"},el("button",{class:"primary",text:"Sim, concluir",onclick:async()=>{clearTimeout(timer);try{await gravar("concluida");vExtrair()}catch(e){}}}),el("button",{class:"ghost",text:"Voltar",onclick:()=>box.replaceChildren()}))))}
+  box.replaceChildren(...parts);box.scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+/* ======================================================= CONSENSO */
+function parDoEstudo(id){return S.todas.filter(x=>x.estudo_id===id&&x.status==="concluida").sort((a,b)=>a.email<b.email?-1:1)}
+function vConsenso(){
+  const prontos=S.estudos.filter(e=>parDoEstudo(e.id).length>=2);
+  const desk=el("div",{class:"desk"+(S.selC?" open":"")});
+  const list=el("aside",{class:"col list"},el("div",{class:"lhead",text:prontos.length+" estudos com as duas extrações concluídas"}),
+    prontos.length?prontos.map(e=>el("button",{class:"st","aria-current":S.selC===e.id?"true":"false",onclick:()=>{S.selC=e.id;vConsenso()}},el("b",{text:e.rotulo}),
+      S.consenso[e.id]?el("span",{class:"pill p-consenso",text:"Feito"}):el("span",{class:"pill p-rascunho",text:"Pendente"}),el("small",{text:divergencias(e.id).length+" divergências"}))):
+      el("div",{class:"empty",text:"Nenhum estudo com as duas extrações concluídas ainda."}));
+  const main=el("section",{class:"col form"});desk.append(list,main);$("#view").replaceChildren(desk);
+  if(!S.selC){main.append(el("div",{class:"empty",text:"Escolha um estudo para comparar as duas extrações."}));return}
+  telaConsenso(main,S.estudos.find(e=>e.id===S.selC));
+}
+const chaveLinha=r=>(r.categoria||"")+"|"+(r.termo||"").trim().toLowerCase();
+function divergencias(id){
+  const [a,b]=parDoEstudo(id);if(!a||!b)return [];const A=a.dados||{},B=b.dados||{};const out=[];
+  for(const c of CAMPOS)if(String(A[c.k]??"")!==String(B[c.k]??""))out.push({campo:c.k,rotulo:c.l,A:A[c.k],B:B[c.k]});
+  const ma=new Map((A.desfechos||[]).map(r=>[chaveLinha(r),r])),mb=new Map((B.desfechos||[]).map(r=>[chaveLinha(r),r]));
+  for(const k of new Set([...ma.keys(),...mb.keys()])){const ra=ma.get(k)||{},rb=mb.get(k)||{};
+    for(const c of COLS)if(String(ra[c.k]??"")!==String(rb[c.k]??""))out.push({campo:"D["+k+"]."+c.k,rotulo:"D · "+(ra.categoria||rb.categoria)+" · "+c.l,A:ra[c.k],B:rb[c.k]})}
+  return out;
+}
+function telaConsenso(box,e){
+  const [a,b]=parDoEstudo(e.id);const A=a.dados||{},B=b.dados||{};
+  const C=JSON.parse(JSON.stringify(S.consenso[e.id]?.dados||{}));const dec=JSON.parse(JSON.stringify(S.consenso[e.id]?.decisoes||{}));
+  const novo=!S.consenso[e.id];
+  if(novo){for(const c of CAMPOS)if(String(A[c.k]??"")===String(B[c.k]??""))C[c.k]=A[c.k];
+    const mb=new Map((B.desfechos||[]).map(r=>[chaveLinha(r),r]));
+    C.desfechos=(A.desfechos||[]).map(r=>{const o={...r};const rb=mb.get(chaveLinha(r))||{};for(const c of COLS)if(String(r[c.k]??"")!==String(rb[c.k]??""))o[c.k]="";return o});
+    for(const [k,r] of mb)if(!(A.desfechos||[]).some(x=>chaveLinha(x)===k))C.desfechos.push({...r,_so_b:1});}
+  if(!Array.isArray(C.desfechos))C.desfechos=[];
+  const grid=el("div",{class:"cmp"},el("div",{class:"h",text:"Campo"}),el("div",{class:"h",text:"Extrator A · "+a.email}),el("div",{class:"h",text:"Extrator B · "+b.email}),el("div",{class:"h",text:"Consenso"}));
+  for(const c of CAMPOS){const dif=String(A[c.k]??"")!==String(B[c.k]??"");
+    const {inp}=campo(c,C,false,()=>{dec[c.k]="editado"});
+    const usar=(lado,v)=>el("button",{class:"mini",text:"usar "+lado,onclick:()=>{C[c.k]=v;inp.value=v??"";dec[c.k]=lado}});
+    grid.append(el("div",{class:"lab"+(dif?" diff":""),text:c.l}),el("div",{class:dif?"diff":"",text:fmt(A[c.k])},dif?usar("A",A[c.k]):null),el("div",{class:dif?"diff":"",text:fmt(B[c.k])},dif?usar("B",B[c.k]):null),el("div",{class:dif?"diff":""},inp))}
+  const tabA=tabelaLeitura(A.desfechos||[]),tabB=tabelaLeitura(B.desfechos||[]);
+  const secD=SECOES.find(s=>s.tabela);
+  const dC=secao(secD,C,false);
+  const nd=divergencias(e.id).length;
+  box.replaceChildren(el("div",{class:"sheet"},
+    el("button",{class:"ghost back",text:"← Estudos",onclick:()=>{S.selC=null;vConsenso()}}),
+    el("div",{class:"shead"},el("h2",{text:"Consenso · "+e.rotulo})),
+    el("div",{class:"ref",text:nd+" divergências entre as extrações. Campos iguais já vêm preenchidos; nos divergentes, escolha A, B ou edite. Na seção D, células divergentes vêm vazias e linhas que só B extraiu vêm marcadas."}),
+    S.consenso[e.id]?el("div",{class:"lock",text:"Consenso salvo por "+S.consenso[e.id].decidido_por+" em "+new Date(S.consenso[e.id].atualizado).toLocaleString("pt-BR")+". Você pode ajustar e salvar de novo; tudo fica no histórico."}):null,
+    grid,
+    el("div",{class:"card"},el("h3",{text:"Seção D · extrator A"}),tabA),
+    el("div",{class:"card"},el("h3",{text:"Seção D · extrator B"}),tabB),
+    dC,
+    el("p",{class:"err",id:"cerr"})),
+    el("div",{class:"bar"},el("span",{class:"save",id:"save",text:""}),el("button",{class:"primary",text:"Salvar consenso",onclick:async()=>{
+      for(const r of C.desfechos)delete r._so_b;
+      try{const r=await q(SB.from("rs_consenso").upsert({estudo_id:e.id,dados:C,decisoes:dec},{onConflict:"estudo_id"}).select().single());S.consenso[e.id]=r;setSave("ok","Consenso salvo");vConsenso()}
+      catch(x){$("#cerr").textContent="Não foi possível salvar: "+(x.message||x)}}})));
+}
+function tabelaLeitura(rows){if(!rows.length)return el("span",{class:"help",text:"Sem linhas."});
+  return el("div",{class:"tablewrap"},el("table",{},el("thead",{},el("tr",{},COLS.map(c=>el("th",{text:c.l})))),el("tbody",{},rows.map(r=>el("tr",{},COLS.map(c=>el("td",{text:fmt(r[c.k])})))))))}
+
+/* ======================================================= ESTUDOS E EQUIPE (autor) */
+async function vEstudos(){
+  let equipe=[];try{equipe=await q(SB.from("rs_equipe").select("*").order("email"))}catch(e){}
+  const novo={id:"",rotulo:"",referencia:"",doi:"",coorte:""};
+  const fE=[["id","Identificador (minúsculas, ex.: autor2026)"],["rotulo","Rótulo curto"],["coorte","Coorte"],["doi","DOI"],["referencia","Referência ABNT"]];
+  const msg=el("p",{class:"err"});
+  const inE=fE.map(([k,l])=>{const i=k==="referencia"?el("textarea"):el("input",{type:"text"});i.addEventListener("input",()=>novo[k]=i.value.trim());return el("div",{class:"f"+(k==="referencia"?" wide":"")},el("label",{text:l}),i)});
+  const eq={email:"",papel:"extrator"};const eqMsg=el("p",{class:"err"});
+  const eqEmail=el("input",{type:"text",placeholder:"e-mail já criado em Authentication"});eqEmail.addEventListener("input",()=>eq.email=eqEmail.value.trim());
+  const eqPapel=el("select",{},el("option",{value:"extrator",text:"extrator"}),el("option",{value:"adjudicador",text:"adjudicador"}));eqPapel.addEventListener("change",()=>eq.papel=eqPapel.value);
+  $("#view").replaceChildren(el("div",{class:"page"},el("div",{class:"in"},
+    el("div",{class:"card"},el("h3",{text:"Estudos no catálogo ("+S.estudos.length+")"}),
+      el("div",{class:"tablewrap"},el("table",{},el("thead",{},el("tr",{},["Id","Rótulo","Coorte","Extrações concluídas","Consenso"].map(h=>el("th",{text:h})))),
+        el("tbody",{},S.estudos.map(e=>el("tr",{},el("td",{class:"mono",text:e.id}),el("td",{text:e.rotulo}),el("td",{text:e.coorte}),el("td",{text:String(S.todas.filter(x=>x.estudo_id===e.id&&x.status==="concluida").length)}),el("td",{text:S.consenso[e.id]?"sim":"—"}))))))),
+    el("div",{class:"card"},el("h3",{text:"Incluir estudo"}),el("div",{class:"grid"},inE),msg,
+      el("button",{class:"primary",style:"align-self:flex-start",text:"Incluir",onclick:async()=>{
+        if(!/^[a-z0-9_]{3,40}$/.test(novo.id)||!novo.rotulo){msg.textContent="Identificador (3 a 40 caracteres: minúsculas, números, _) e rótulo são obrigatórios.";return}
+        try{await q(SB.from("rs_estudos").insert(novo));await carregar();vEstudos()}catch(e){msg.textContent="Não foi possível incluir: "+(e.message||e)}}})),
+    el("div",{class:"card"},el("h3",{text:"Equipe"}),
+      el("span",{class:"help",text:"Primeiro crie o usuário no Supabase (Authentication > Users). Depois inclua o e-mail aqui com o papel."}),
+      el("div",{class:"tablewrap"},el("table",{},el("thead",{},el("tr",{},el("th",{text:"E-mail"}),el("th",{text:"Papel"}))),el("tbody",{},equipe.map(p=>el("tr",{},el("td",{text:p.email}),el("td",{text:p.papel})))))),
+      el("div",{class:"grid"},el("div",{class:"f"},el("label",{text:"E-mail"}),eqEmail),el("div",{class:"f"},el("label",{text:"Papel"}),eqPapel)),eqMsg,
+      el("button",{class:"primary",style:"align-self:flex-start",text:"Incluir na equipe",onclick:async()=>{
+        if(!/.+@.+\..+/.test(eq.email)){eqMsg.textContent="Informe um e-mail válido.";return}
+        try{await q(SB.from("rs_equipe").upsert(eq,{onConflict:"email"}));vEstudos()}catch(e){eqMsg.textContent="Não foi possível incluir: "+(e.message||e)}}}))
+  )));
+}
+
+/* ======================================================= EXPORTAR */
+function vExportar(){
+  const msg=el("p",{class:"help"});
+  $("#view").replaceChildren(el("div",{class:"page"},el("div",{class:"in"},el("div",{class:"card"},
+    el("h3",{text:"Planilha de extração (.xlsx)"}),
+    el("span",{class:"help",text:"Gera a planilha com o estado atual do banco: estudos, extrações de cada extrator, desfechos por categoria, divergências, consenso"+(S.autor?" e histórico":"")+". O conteúdo respeita o que você tem permissão de ver."}),
+    el("button",{class:"primary",style:"align-self:flex-start",text:"Gerar e baixar planilha",onclick:async()=>{msg.textContent="Gerando…";try{await carregar();await exportar();msg.textContent="Planilha gerada."}catch(e){msg.textContent="Erro: "+(e.message||e)}}}),msg))));
+}
+async function exportar(){
+  if(!window.XLSX)throw new Error("biblioteca de planilha não carregou; recarregue a página");
+  const wb=XLSX.utils.book_new();const add=(nome,rows)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows.length?rows:[{vazio:""}]),nome);
+  add("Estudos",S.estudos.map(e=>({estudo:e.id,rotulo:e.rotulo,coorte:e.coorte,doi:e.doi,referencia:e.referencia,
+    extracoes_concluidas:S.todas.filter(x=>x.estudo_id===e.id&&x.status==="concluida").length,consenso:S.consenso[e.id]?"sim":"não"})));
+  add("Extracoes",S.todas.map(x=>{const o={estudo:x.estudo_id,extrator:x.email,status:x.status,concluida_em:x.concluida_em||"",atualizado:x.atualizado};for(const c of CAMPOS)o[c.k]=x.dados?.[c.k]??"";return o}));
+  add("Extracoes_desfechos",S.todas.flatMap(x=>(x.dados?.desfechos||[]).map((r,i)=>{const o={estudo:x.estudo_id,extrator:x.email,status:x.status,linha:i+1};for(const c of COLS)o[c.k]=r[c.k]??"";return o})));
+  add("Divergencias",S.estudos.flatMap(e=>divergencias(e.id).map(d=>({estudo:e.id,campo:d.campo,rotulo:d.rotulo,A:d.A??"",B:d.B??""}))));
+  const cons=Object.values(S.consenso);
+  add("Consenso",cons.map(c=>{const o={estudo:c.estudo_id,decidido_por:c.decidido_por,atualizado:c.atualizado};for(const k of CAMPOS)o[k.k]=c.dados?.[k.k]??"";return o}));
+  add("Consenso_desfechos",cons.flatMap(c=>(c.dados?.desfechos||[]).map((r,i)=>{const o={estudo:c.estudo_id,linha:i+1,ibtk_destino:c.dados?.ibtk_destino??""};for(const k of COLS)o[k.k]=r[k.k]??"";return o})));
+  add("Dicionario",[...CAMPOS.map(c=>({secao:SECOES.find(s=>(s.campos||[]).includes(c)).id,campo:c.k,rotulo:c.l,tipo:c.t,opcoes:(c.o||[]).join(" | ")})),...COLS.map(c=>({secao:"D",campo:c.k,rotulo:c.l,tipo:c.t,opcoes:(c.o||[]).join(" | ")}))]);
+  if(S.autor){try{const h=await q(SB.from("rs_historico").select("*").order("id"));add("Historico",h.map(x=>({id:x.id,tabela:x.tabela,estudo:x.estudo_id,email:x.email,status:x.status,registrado_em:x.registrado_em,dados:JSON.stringify(x.dados)})))}catch(e){}}
+  XLSX.writeFile(wb,"extracao_rs_ibtk_"+new Date().toISOString().slice(0,10)+".xlsx");
+}
+
+/* ======================================================= entrada */
+$("#lform").addEventListener("submit",async ev=>{ev.preventDefault();const b=$("#lok");b.disabled=true;$("#lerr").textContent="";
+  try{const {data,error}=await SB.auth.signInWithPassword({email:$("#lemail").value.trim(),password:$("#lsenha").value});
+    if(error){$("#lerr").textContent=/invalid/i.test(error.message)?"E-mail ou senha incorretos.":error.message;return}
+    $("#login").hidden=true;await iniciar(data.user)}finally{b.disabled=false}});
+$("#sair").onclick=async()=>{try{await SB.auth.signOut()}catch(e){};location.reload()};
+async function iniciar(u){
+  S.uid=u.id;S.email=u.email||"";$("#whoami").textContent=S.email;$("#sair").hidden=false;
+  try{
+    const [a,p]=await Promise.all([SB.rpc("is_autor"),SB.rpc("rs_papel")]);
+    S.autor=a.data===true;S.papel=p.data||null;
+    if(!S.autor&&!S.papel){notice("Seu e-mail não está na equipe da revisão sistemática. Peça ao autor para incluí-lo.");$("#view").replaceChildren();return}
+    await carregar();notice("");render();
+  }catch(e){notice("Não foi possível carregar os dados: "+(e.message||e))}
+}
+(async()=>{
+  if(!ok()){notice(!window.supabase?"Não foi possível carregar a biblioteca do banco de dados. Recarregue com Ctrl+F5.":"Configuração do banco ausente (config.js).");return}
+  SB=supabase.createClient(CFG.url,CFG.chave);
+  const {data}=await SB.auth.getSession();
+  if(data&&data.session)await iniciar(data.session.user);else $("#login").hidden=false;
+})();
+window.addEventListener("beforeunload",ev=>{if($("#save")?.textContent==="Salvando…"){ev.preventDefault();ev.returnValue=""}});
+</script>
+</body>
+</html>

@@ -203,7 +203,11 @@ const SECOES=[
   {k:"slp_mediana",l:"SLP mediana (meses)",t:"num",h:"Vazio se não atingida"},
   {k:"slp_na",l:"SLP mediana não atingida?",t:"sel",o:["sim","não"]},
   {k:"slp12",l:"SLP em 12 meses (%)",t:"num"},{k:"slp24",l:"SLP em 24 meses (%)",t:"num"}]},
- {id:"F",titulo:"F. Notas",campos:[
+ {id:"F",titulo:"F. Qualidade do relato e notas",campos:[
+  {k:"inconsistencia",l:"Há inconsistência interna nos dados?",t:"sel",o:["não","sim"],h:"Ex.: total de uma tabela que não bate com a soma das linhas, ou texto e tabela com números diferentes"},
+  {k:"inconsistencia_desc",l:"Qual inconsistência e qual dado foi usado",t:"area",w:1,h:"Regra: usar o dado mais desagregado e incluir no contato com os autores"},
+  {k:"sobreposicao",l:"Pacientes contados em mais de uma análise de origem?",t:"sel",o:["não","sim, separável","sim, não separável"]},
+  {k:"sobreposicao_desc",l:"Descreva a sobreposição",t:"area",w:1,h:"Regra: o paciente conta uma vez, pelo iBTK mais recente"},
   {k:"contato_autores",l:"Precisa contatar os autores?",t:"sel",o:["sim","não"]},
   {k:"dados_faltantes",l:"O que falta pedir aos autores",t:"area",w:1},
   {k:"notas",l:"Notas e dúvidas",t:"area",w:1}]}
@@ -336,6 +340,9 @@ function validar(d){
     if(so.length&&so.reduce((a,b)=>a+b,0)!==N0)av.push("Seção B: a soma das origens difere do N de intolerantes (pode ser legítimo se um paciente teve mais de um iBTK).");
     const sd=["n_llc","n_lcm","n_mw","n_lzm","n_outras"].map(n).filter(x=>x!=null);
     if(sd.length&&sd.reduce((a,b)=>a+b,0)!==N0)av.push("Seção B: a soma por doença difere do N de intolerantes.");}
+  if(d.inconsistencia==="sim"&&vazio(d.inconsistencia_desc))er.push("Seção F: descreva a inconsistência e qual dado foi usado.");
+  if(d.inconsistencia==="sim"&&d.contato_autores!=="sim")av.push("Seção F: com inconsistência interna, a regra é incluir o estudo no contato com os autores.");
+  if((d.sobreposicao||"").startsWith("sim")&&vazio(d.sobreposicao_desc))er.push("Seção F: descreva a sobreposição de pacientes.");
   if(d.elegivel!=="sim"&&vazio(d.motivo_inelegivel))av.push("Seção A: registre o motivo da não elegibilidade.");
   return {er,av};
 }

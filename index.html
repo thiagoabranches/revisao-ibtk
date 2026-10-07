@@ -445,7 +445,7 @@ async function flush(id){
 function onboardForm(){
   const p=S.perfil||{};const v=p.vinculos||{};
   const nome=el("input",{type:"text",id:"o-nome",value:p.nome||"",autocomplete:"name"});
-  const crm=el("input",{type:"text",id:"o-crm",value:p.crm||"",placeholder:"Ex.: 123456/SP"});
+  const crm=el("input",{type:"text",id:"o-crm",value:(p.crm&&p.crm!=="não informado")?p.crm:"",placeholder:"Opcional"});
   const inst=el("input",{type:"text",id:"o-inst",value:p.instituicao||""});
   const esp=el("input",{type:"text",id:"o-esp",value:p.especialidade||"Hematologia"});
   const vk=VINC.map(([k,l])=>{const c=el("input",{type:"checkbox",id:"v-"+k});c.checked=!!v[k];return el("label",{class:"ck",for:"v-"+k},c,l)});
@@ -453,12 +453,12 @@ function onboardForm(){
   const tipo=el("textarea",{id:"o-tipo",placeholder:"Ex.: palestrante, consultoria, pesquisa clínica, advisory board; período"});tipo.value=p.tipo_vinculo||"";
   const decl=el("input",{type:"checkbox",id:"o-decl"});decl.checked=!!p.declaracao;
   const go=el("button",{class:"primary",text:S.perfilOk?"Salvar alterações":"Começar a revisão"});
-  const check=()=>{go.disabled=!(nome.value.trim()&&crm.value.trim()&&decl.checked&&(nenhum.checked||VINC.some(([k])=>$("#v-"+k)?.checked)))};
+  const check=()=>{go.disabled=!(nome.value.trim()&&decl.checked&&(nenhum.checked||VINC.some(([k])=>$("#v-"+k)?.checked)))};
   [nome,crm,decl,nenhum].forEach(x=>x.addEventListener("input",check));
   setTimeout(()=>{VINC.forEach(([k])=>$("#v-"+k).addEventListener("change",()=>{if($("#v-"+k).checked)nenhum.checked=false;check()}));nenhum.addEventListener("change",()=>{if(nenhum.checked)VINC.forEach(([k])=>$("#v-"+k).checked=false);check()});check()},0);
   go.onclick=async()=>{
     go.disabled=true;go.textContent="Salvando…";
-    const body={nome:nome.value.trim(),crm:crm.value.trim(),instituicao:inst.value.trim(),especialidade:esp.value.trim(),
+    const body={nome:nome.value.trim(),crm:crm.value.trim()||"não informado",instituicao:inst.value.trim(),especialidade:esp.value.trim(),
       vinculos:Object.fromEntries(VINC.map(([k])=>[k,$("#v-"+k).checked])),sem_vinculos:nenhum.checked,tipo_vinculo:tipo.value.trim(),
       declaracao:true,atualizado:new Date().toISOString()};
     try{await BK.salvarPerfil(body);S.perfil=body;S.perfilOk=true;renderAll()}
@@ -467,7 +467,7 @@ function onboardForm(){
   return el("div",{class:"onboard"},
     el("h2",{text:"Antes de começar: cadastro e declaração de vínculos"}),
     el("p",{text:"A ferramenta declara os vínculos do autor com fabricantes, e a mesma transparência vale para quem revisa. Ter vínculo não impede a revisão; ele só precisa ficar registrado. Seu nome e seus vínculos aparecem para o autor e, depois, na página de método da ferramenta."}),
-    el("div",{class:"grid2"},el("label",{for:"o-nome"},"Nome completo",nome),el("label",{for:"o-crm"},"CRM / UF",crm),el("label",{for:"o-inst"},"Instituição principal",inst),el("label",{for:"o-esp"},"Especialidade",esp)),
+    el("div",{class:"grid2"},el("label",{for:"o-nome"},"Nome (como prefere ser identificado)",nome),el("label",{for:"o-crm"},"CRM / UF (opcional)",crm),el("label",{for:"o-inst"},"Instituição principal",inst),el("label",{for:"o-esp"},"Especialidade",esp)),
     el("fieldset",{},el("legend",{text:"Vínculos com fabricantes de iBTK nos últimos 3 anos"}),vk,el("label",{class:"ck",for:"v-nenhum"},nenhum,"Nenhum vínculo com esses fabricantes"),
       el("label",{for:"o-tipo",style:"display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)"},"Tipo de vínculo",tipo)),
     el("label",{class:"ck",for:"o-decl"},decl,"Declaro que as informações acima são verdadeiras e que minha revisão é independente: avalio a fidelidade de cada achado à fonte, sem considerar o interesse de nenhum fabricante."),

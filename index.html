@@ -182,6 +182,10 @@ legend{font-size:12px;color:var(--muted);padding:0 4px}
 .login .row2{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .login .link{background:none;border:0;color:var(--accent);padding:0;font-size:13px;text-decoration:underline}
 .login .err{color:var(--bad);font-size:13px;min-height:1em}
+.login.wide form{max-width:560px}
+.login .q{display:flex;flex-direction:column;gap:6px}.login .qt{margin:0;color:var(--ink);font-size:13px}.login .opts{display:flex;gap:6px;flex-wrap:wrap}
+.login .pg{margin:6px 0 0;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.login textarea{padding:9px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg);font-size:14px;min-height:64px;resize:vertical;color:var(--ink)}
 .who button{border:1px solid var(--line);background:transparent;padding:4px 10px;border-radius:999px;font-size:12px}
 
 /* painel do autor */
@@ -274,6 +278,26 @@ td .c{color:var(--muted);font-size:12px;margin-top:3px;max-width:52ch}
     <label for="l-senha">Senha<input id="l-senha" type="password" autocomplete="current-password" required minlength="8"></label>
     <p class="err" id="l-err" role="alert"></p>
     <div class="row2"><button class="primary" id="l-ok" type="submit">Entrar</button><button class="link" id="l-pular" type="button">Só navegar, sem registrar decisões</button></div>
+  </form>
+</section>
+
+<section class="login" id="bv" hidden aria-labelledby="bv-h">
+  <form id="bvform" novalidate>
+    <h2 id="bv-h">Antes de começar</h2>
+    <p>Esta é uma versão de teste: o que mais importa agora é a sua opinião sobre a experiência de uso e o conteúdo. Não precisa avaliar os 148 achados; abra alguns, registre uma decisão e um comentário.</p>
+    <p><b>Ao terminar, clique em “Sair” (no topo) em vez de fechar a página.</b> Vai abrir uma pesquisa rápida, de cerca de 1 minuto, com perguntas de múltipla escolha.</p>
+    <div class="row2"><button class="primary" id="bv-ok" type="submit">Entendi</button></div>
+  </form>
+</section>
+
+<section class="login wide" id="pesq" hidden aria-labelledby="pesq-h">
+  <form id="pesqform" novalidate>
+    <h2 id="pesq-h">Antes de sair: 1 minuto de pesquisa</h2>
+    <p>Oito perguntas de múltipla escolha e um campo opcional. Suas respostas ficam registradas com o seu acesso e só o autor as lê.</p>
+    <div id="pesq-q" style="display:flex;flex-direction:column;gap:12px"></div>
+    <label for="p-com">O que mais atrapalhou ou faltou? (opcional)<textarea id="p-com" maxlength="1500"></textarea></label>
+    <p class="err" id="p-err" role="alert"></p>
+    <div class="row2"><button class="primary" id="p-ok" type="submit" disabled>Enviar e sair</button><button class="link" id="p-volta" type="button">Voltar à revisão</button><button class="link" id="p-pula" type="button">Sair sem responder</button></div>
   </form>
 </section>
 
@@ -489,10 +513,10 @@ function renderPanel(){
     return {i,ds,div,com:ds.some(x=>x.d.comentario||x.d.sugestao)}})
     .filter(r=>(!S.panelOnly.div||r.div)&&(!S.panelOnly.com||r.com));
   const tog=(k,l)=>{const b=el("button",{class:"chip","aria-pressed":S.panelOnly[k]?"true":"false",text:l});b.onclick=()=>{S.panelOnly[k]=!S.panelOnly[k];renderPanel()};return b};
-  const exp=el("button",{class:"chip",text:"Exportar decisões (CSV)"});exp.onclick=exportCsv;const hist=el("button",{class:"chip",text:"Exportar histórico (CSV)"});hist.onclick=exportHistorico;const upd=el("button",{class:"chip",text:"Atualizar"});upd.onclick=()=>carregarAutor().then(renderPanel);
+  const exp=el("button",{class:"chip",text:"Exportar decisões (CSV)"});exp.onclick=exportCsv;const hist=el("button",{class:"chip",text:"Exportar histórico (CSV)"});hist.onclick=exportHistorico;const pes=el("button",{class:"chip",text:"Exportar pesquisa (CSV)"});pes.onclick=exportPesquisa;const upd=el("button",{class:"chip",text:"Atualizar"});upd.onclick=()=>carregarAutor().then(renderPanel);
   box.replaceChildren(
     el("h2",{style:"margin:0;font-size:18px",text:"Revisores"}),el("div",{class:"revs"},revCards),
-    el("div",{class:"ptools"},el("h2",{style:"margin:0 12px 0 0;font-size:18px",text:"Decisões por achado"}),tog("div","Só com divergência ou ajuste"),tog("com","Só com comentário"),exp,hist,upd),
+    el("div",{class:"ptools"},el("h2",{style:"margin:0 12px 0 0;font-size:18px",text:"Decisões por achado"}),tog("div","Só com divergência ou ajuste"),tog("com","Só com comentário"),exp,hist,pes,upd),
     el("div",{class:"tablewrap"},el("table",{},el("thead",{},el("tr",{},el("th",{text:"Achado"}),el("th",{text:"Família"}),el("th",{text:"Decisões e comentários"}),el("th",{text:"Situação"}))),
       el("tbody",{},rows.length?rows.map(r=>el("tr",{},el("td",{class:"mono",text:r.i.id}),el("td",{text:FAM[r.i.fam]}),
         el("td",{},r.ds.length?r.ds.map(x=>el("div",{},el("span",{text:(S.revs[x.id]?.nome||"Revisor")+": "}),pill(x.d.decisao),x.d.comentario?el("div",{class:"c",text:x.d.comentario}):null,x.d.sugestao?el("div",{class:"c",text:"Sugestão: "+x.d.sugestao}):null)):el("span",{class:"c",text:"Sem avaliação"})),
@@ -509,6 +533,12 @@ function exportCsv(){
   for(const [rid,its] of Object.entries(S.revItems))for(const [iid,d] of Object.entries(its)){const it=D.items.find(x=>x.id===iid);const r=S.revs[rid]||{};
     lines.push([iid,FAM[it?.fam]||"",r.nome,r.crm,r.email,d.decisao?DEC[d.decisao]:"",d.comentario,d.sugestao,d.versao_base,d.atualizado].map(csvq).join(";"))}
   baixar("revisao_ibtk_decisoes_"+hoje()+".csv",lines)}
+async function exportPesquisa(){
+  try{const rows=await BK.lerTudo("pesquisas");const cols=PESQ.map(q=>q.k);
+    const lines=[["registrado_em","revisor",...cols,"comentario","versao_base"].join(";")];
+    for(const p of rows){const r=S.revs[p.user_id]||{};lines.push([p.criado,r.nome||p.email,...cols.map(c=>p.respostas?.[c]||""),p.comentario,p.versao_base].map(csvq).join(";"))}
+    baixar("revisao_ibtk_pesquisa_"+hoje()+".csv",lines)}
+  catch(e){showNotice("Não foi possível ler a pesquisa: "+(e.message||e))}}
 async function exportHistorico(){
   try{const rows=await BK.lerTudo("historico");
     const lines=[["registrado_em","achado","revisor","crm","decisao","comentario","sugestao","versao_base"].join(";")];
@@ -549,6 +579,7 @@ const BK={
   async autor(){const {data,error}=await SB.rpc("is_autor");return !error&&data===true},
   async perfil(){const {data,error}=await SB.from("perfis").select("*").eq("user_id",S.uid).maybeSingle();if(error)throw error;return data},
   async salvarPerfil(b){const {error}=await SB.from("perfis").upsert({...b,user_id:S.uid},{onConflict:"user_id"});if(error)throw error},
+  async enviarPesquisa(r,c){const {error}=await SB.from("pesquisas").insert({user_id:S.uid,respostas:r,comentario:c,versao_base:D.versao});if(error)throw error},
   async salvarDecisao(id,b){const {error}=await SB.from("decisoes").upsert({user_id:S.uid,item_id:id,decisao:b.decisao,comentario:b.comentario,sugestao:b.sugestao,versao_base:D.versao},{onConflict:"user_id,item_id"});if(error)throw error}
 };
 async function carregarAutor(){
@@ -579,7 +610,45 @@ function abrirLogin(modo){
 $("#l-pular").onclick=()=>{if($("#login").dataset.modo==="entrar")S.pulouLogin=true;$("#login").hidden=true};
 $("#loginbtn").onclick=()=>abrirLogin("entrar");
 $("#senhabtn").onclick=()=>abrirLogin("senha");
-$("#logoutbtn").onclick=async()=>{try{await SB.auth.signOut()}catch(e){};location.reload()};
+async function sair(){S.saindo=true;try{await SB.auth.signOut()}catch(e){};location.reload()}
+$("#logoutbtn").onclick=()=>{if(S.owner||S.pesquisaFeita)sair();else abrirPesquisa()};
+window.addEventListener("beforeunload",e=>{if(S.uid&&!S.owner&&!S.pesquisaFeita&&!S.saindo){e.preventDefault();e.returnValue=""}});
+
+/* ---------- boas-vindas e pesquisa de saída ---------- */
+const LIK=["Discordo muito","Discordo","Neutro","Concordo","Concordo muito"];
+const PESQ=[
+  {k:"ux_entrada",g:"Experiência de uso",t:"Entrar e fazer o cadastro foi simples.",o:LIK},
+  {k:"ux_achar",g:"Experiência de uso",t:"Foi fácil encontrar e filtrar os achados.",o:LIK},
+  {k:"ux_registrar",g:"Experiência de uso",t:"Registrar decisão e comentário foi rápido e claro.",o:LIK},
+  {k:"ux_tempo",g:"Experiência de uso",t:"Tempo médio que levei por achado:",o:["Menos de 1 min","1 a 3 min","3 a 5 min","Mais de 5 min"]},
+  {k:"ux_aparelho",g:"Experiência de uso",t:"Aparelho que usei:",o:["Computador","Celular","Tablet"]},
+  {k:"ct_fiel",g:"Conteúdo",t:"Os achados que li são fiéis às fontes citadas:",o:["Todos","A maioria","Alguns","Poucos","Não consegui avaliar"]},
+  {k:"ct_util",g:"Conteúdo",t:"Os achados são úteis para a prática clínica.",o:LIK},
+  {k:"ct_uso",g:"Conteúdo",t:"Eu usaria esta ferramenta na rotina:",o:["Sim","Talvez","Não"]}
+];
+let RP={};
+function abrirPesquisa(){
+  RP={};const ok=$("#p-ok"),upd=()=>{ok.disabled=!PESQ.every(q=>RP[q.k])};let g="";
+  $("#pesq-q").replaceChildren(...PESQ.flatMap(q=>{
+    const row=el("div",{class:"opts",role:"radiogroup","aria-label":q.t});
+    q.o.forEach(o=>{const b=el("button",{type:"button",class:"chip","aria-pressed":"false",text:o});
+      b.onclick=()=>{RP[q.k]=o;[...row.children].forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));upd()};row.append(b)});
+    const h=q.g!==g?[el("p",{class:"pg",text:q.g})]:[];g=q.g;
+    return [...h,el("div",{class:"q"},el("p",{class:"qt",text:q.t}),row)]}));
+  $("#p-com").value="";$("#p-err").textContent="";ok.disabled=true;$("#pesq").hidden=false;$("#pesq").scrollTop=0;
+}
+$("#p-volta").onclick=()=>{$("#pesq").hidden=true};
+$("#p-pula").onclick=()=>sair();
+$("#pesqform").addEventListener("submit",async e=>{
+  e.preventDefault();const ok=$("#p-ok"),err=$("#p-err");ok.disabled=true;err.textContent="";
+  try{await BK.enviarPesquisa(RP,$("#p-com").value.trim().slice(0,1500));S.pesquisaFeita=true;await sair()}
+  catch(x){err.textContent="Não foi possível enviar agora. Tente de novo, ou use “Sair sem responder”.";ok.disabled=false}
+});
+function boasVindas(){
+  let visto=false;try{visto=sessionStorage.getItem("rev-bv")==="1"}catch(e){}
+  if(visto)return;$("#bv").hidden=false;$("#bv-ok").focus({preventScroll:true});
+}
+$("#bvform").addEventListener("submit",e=>{e.preventDefault();$("#bv").hidden=true;try{sessionStorage.setItem("rev-bv","1")}catch(x){}});
 $("#loginform").addEventListener("submit",async e=>{
   e.preventDefault();const ok=$("#l-ok"),err=$("#l-err"),senha=$("#l-senha").value;
   if(senha.length<8){err.textContent="A senha tem pelo menos 8 caracteres.";return}
@@ -601,6 +670,7 @@ async function iniciarSessao(u){
     if(S.owner)await carregarAutor();
   }catch(e){showNotice("Entrou, mas não foi possível ler seus dados: "+(e.message||e));cabecalho();renderAll();return}
   cabecalho();aviso();coverLabel();renderAll();
+  if(!S.owner)boasVindas();
 }
 (async()=>{
   cabecalho();aviso();

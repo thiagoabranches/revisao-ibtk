@@ -285,6 +285,7 @@ td .c{color:var(--muted);font-size:12px;margin-top:3px;max-width:52ch}
   <form id="bvform" novalidate>
     <h2 id="bv-h">Antes de começar</h2>
     <p>Esta é uma versão de teste: o que mais importa agora é a sua opinião sobre a experiência de uso e o conteúdo. Não precisa avaliar os 148 achados; abra alguns, registre uma decisão e um comentário.</p>
+    <p>Duas ressalvas de conteúdo: a maioria dos achados é de nível 5 (consenso ou opinião de especialistas), e o E148 é um cálculo do autor, ainda não publicado. Detalhes em “Sobre o autor”, seção “O que esta base é e não é”.</p>
     <p><b>Ao terminar, clique em “Sair” (no topo) em vez de fechar a página.</b> Vai abrir uma pesquisa rápida, de cerca de 1 minuto, com perguntas de múltipla escolha.</p>
     <div class="row2"><button class="primary" id="bv-ok" type="submit">Entendi</button></div>
   </form>
@@ -312,6 +313,11 @@ td .c{color:var(--muted);font-size:12px;margin-top:3px;max-width:52ch}
     <p>O núcleo da ferramenta é engenharia de dados em Python, conduzida pelo autor: a base de evidências é estruturada em tabelas versionadas, um validador aplica as regras de classificação, e 84 testes automatizados verificam a cada alteração referências, níveis, patrocínio e termos proibidos de linguagem promocional. Assistentes de IA foram usados como apoio na programação e na extração de dados da literatura, sempre sob verificação do autor; nenhum achado entra na base sem a fonte conferida.</p></section>
     <section class="coi"><h3>Conflitos de interesse do autor</h3>
     <p>O autor é palestrante da BeOne Medicines e prepara, a pedido da empresa, um dossiê de valor sobre o zanubrutinibe. Esse dossiê é um produto separado. Esta ferramenta não tem financiamento e não é usada como endosso naquele material. Por isso a revisão é cega e independente, e cada revisor declara os próprios vínculos.</p></section>
+    <section id="about-base"><h3>O que esta base é e não é</h3>
+    <p id="ab-niv"></p>
+    <p id="ab-fam"></p>
+    <p>A base se limita a LLC/LLPC e a quatro iBTK (ibrutinibe, acalabrutinibe, zanubrutinibe e pirtobrutinibe). Não cobre Waldenström nem linfoma do manto, nem custo, acesso ou incorporação. Os eventos adversos filtráveis são sete; outros, como hipertensão, artralgia, rash e segundas neoplasias, aparecem apenas dentro de achados mais amplos e podem entrar em versão futura. A distribuição de achados reflete a literatura disponível, não uma escolha de ênfase: há bem mais publicações sobre o ibrutinibe, o mais antigo, do que sobre o pirtobrutinibe.</p>
+    <p id="ab-fin"></p></section>
     <section><h3>Papel da revisão</h3>
     <p>A ferramenta não substitui o julgamento clínico. Discordâncias e ajustes são o resultado esperado, não um problema.</p></section>
     <p class="sig">Thiago Abranches · base de evidências de <span id="about-ver"></span></p>
@@ -401,8 +407,8 @@ function renderDetail(){
   const mine=S.dec[i.id]||{};
   const sheet=el("article",{class:"sheet"},
     el("button",{class:"backbtn",text:"← Fila",onclick:()=>$("#desk").classList.remove("showdetail")}),
-    el("div",{class:"shead"},el("span",{class:"bigid",text:i.id}),el("span",{class:"pill p-pend",text:FAM[i.fam]}),levelBadge(i.nv),i.pend?el("span",{class:"pill p-flag",text:"Pendente de revisão"}):null),
-    i.pend?el("div",{class:"flagbox",text:"Este item é um cálculo do autor da ferramenta (comparação indireta pelo método de Bucher) e só perde a marca de pendente depois da revisão. Avalie a conta, a comparabilidade dos ensaios e a redação."}):null,
+    el("div",{class:"shead"},el("span",{class:"bigid",text:i.id}),el("span",{class:"pill p-pend",text:FAM[i.fam]}),levelBadge(i.nv),i.pend?[el("span",{class:"pill p-flag",text:"Cálculo do autor, não publicado"}),el("span",{class:"pill p-flag",text:"Pendente de revisão"})]:null),
+    i.pend?el("div",{class:"flagbox",text:"Este item não é evidência publicada: é um cálculo do próprio autor da ferramenta (comparação indireta ancorada, método de Bucher, com dados agregados de dois ensaios), sem revisão por pares. Ele só perde a marca de pendente depois da revisão de vocês e não deve ser citado como resultado de estudo. Avalie a conta, a comparabilidade dos ensaios e a redação."}):null,
     el("div",{},el("p",{class:"claim-label",text:"O que a ferramenta afirma"}),el("p",{class:"claim",text:i.txt})),
     el("dl",{class:"meta"},
       el("div",{},el("dt",{text:"Evento adverso"}),el("dd",{text:listaNomes(i.ev,D.eventos,nomeEv)})),
@@ -553,6 +559,16 @@ $("#tabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)r
 function renderAll(){renderFilters();renderList();renderProgress();renderDetail()}
 
 /* ---------- sobre ---------- */
+(function(){
+  const c=n=>D.items.filter(i=>i.nv===n).length,T=D.items.length;
+  const ens=c(1),ind=c(2),obs=c(3)+c(4),op=c(5),rev=c(6),bu=c(0);
+  const pc=n=>Math.round(100*n/T);
+  $("#ab-niv").textContent=`Dos ${T} achados, ${op} (${pc(op)}%) vêm de diretrizes, consensos ou opinião de especialistas; ${obs} de estudos observacionais ou de braço único; ${ens+ind} de ensaios randomizados ou comparações indiretas desses ensaios; ${bu} de bulas e documentos regulatórios; e ${rev} de revisões narrativas. Em outras palavras, boa parte do que orienta a conduta na intolerância aos iBTK ainda se apoia em consenso, e não em ensaio comparativo. O nível de cada achado aparece na tela; leia as afirmações com esse peso.`;
+  const tr=D.items.filter(i=>i.fam==="troca_ibtk").length,tc=D.items.filter(i=>i.fam==="troca_classe").length;
+  $("#ab-fam").textContent=`Os achados sobre troca de um iBTK por outro (${tr}) e por outra classe (${tc}) são minoria diante dos de manejo (dose e suporte); os dados de desfecho após a troca vêm em grande parte de estudos de braço único, sem comparador e financiados pelo fabricante do medicamento de destino; o restante é consenso e uma coorte retrospectiva. A origem de financiamento de cada fonte consta no próprio achado.`;
+  const p=D.items.filter(i=>i.pend);
+  $("#ab-fin").textContent=p.length?`${p.length===1?"Um achado ("+p[0].id+") é cálculo":p.length+" achados são cálculos"} do próprio autor, ainda não publicado${p.length===1?"":"s"}, e não conta${p.length===1?"":"m"} como evidência publicada até a revisão de vocês.`:"";
+})();
 $("#about-ver").textContent=D.versao.split("-").reverse().join("/");
 function showAbout(v){$("#about").hidden=!v;if(v){$("#about").scrollTop=0;$("#aboutok").focus({preventScroll:true})}}
 $("#aboutbtn").onclick=()=>showAbout(true);

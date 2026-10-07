@@ -226,7 +226,7 @@ td .c{color:var(--muted);font-size:12px;margin-top:3px;max-width:52ch}
     <button class="tab" data-view="painel" aria-pressed="false">Painel do autor</button>
   </nav>
   <button class="aboutbtn" id="aboutbtn">Sobre</button>
-  <div class="who"><span class="blind" title="Nenhum revisor vê as decisões dos outros. Só o autor da ferramenta vê o conjunto.">Revisão cega</span><span id="whoami"></span><button id="loginbtn" hidden>Entrar</button><button id="senhabtn" hidden>Trocar senha</button><button id="logoutbtn" hidden>Sair</button></div>
+  <div class="who"><span class="blind" title="Nenhum revisor vê as decisões dos outros. Só o autor da ferramenta vê o conjunto.">Revisão cega</span><span id="whoami"></span><button id="loginbtn" hidden>Entrar</button><button id="concluirbtn" hidden>Concluir minha revisão</button><span id="concluida-tag" hidden style="color:var(--ok,#2f7d4f);font-weight:600">Revisão concluída</span><button id="senhabtn" hidden>Trocar senha</button><button id="logoutbtn" hidden>Sair</button></div>
 </header>
 <div class="notice" id="notice" hidden></div>
 
@@ -274,6 +274,18 @@ td .c{color:var(--muted);font-size:12px;margin-top:3px;max-width:52ch}
     <label for="l-senha">Senha<input id="l-senha" type="password" autocomplete="current-password" required minlength="8"></label>
     <p class="err" id="l-err" role="alert"></p>
     <div class="row2"><button class="primary" id="l-ok" type="submit">Entrar</button><button class="link" id="l-pular" type="button">Só navegar, sem registrar decisões</button></div>
+  </form>
+</section>
+
+<section class="login" id="concluir" hidden aria-labelledby="concluir-h">
+  <form id="concluirform" novalidate>
+    <h2 id="concluir-h">Concluir minha revisão</h2>
+    <p id="concluir-txt"></p>
+    <label for="c-crm">CRM / UF<input id="c-crm" type="text" autocomplete="off" placeholder="Ex.: 123456/SP" required></label>
+    <label for="c-cod">Código de conclusão (diferente da senha de login)<input id="c-cod" type="password" autocomplete="off" required></label>
+    <label class="ck" for="c-ciente" style="flex-direction:row;align-items:flex-start;gap:8px;color:var(--fg)"><input id="c-ciente" type="checkbox" style="margin-top:2px">Entendo que, depois de concluir, não poderei mais registrar nem alterar decisões. Só o autor pode reabrir a revisão.</label>
+    <p class="err" id="c-err" role="alert"></p>
+    <div class="row2"><button class="primary" id="c-ok" type="submit" disabled>Concluir revisão</button><button class="link" id="c-cancel" type="button">Voltar e continuar revisando</button></div>
   </form>
 </section>
 
@@ -368,7 +380,7 @@ function renderProgress(){
 /* ---------- ficha ---------- */
 function levelBadge(nv){const bars=[0,1,2,3,4,5,6].map(k=>el("b",{class:k>=nv&&nv<9?"on":""}));return el("span",{class:"lvl",title:"Hierarquia da evidência: 0 = bula, 6 = revisão narrativa"},el("i",{},bars.reverse()),D.niveis[String(nv)]||"Não classificado")}
 function select(id){S.sel=id;$("#desk").classList.add("showdetail");renderList();renderDetail();try{localStorage.setItem("rev-sel",id)}catch(e){}}
-function canDecide(){return !!(S.db&&S.uid&&S.perfilOk&&!S.owner)}
+function canDecide(){return !!(S.db&&S.uid&&S.perfilOk&&!S.owner&&!S.concluida)}
 function renderDetail(){
   const box=$("#detail");
   if(S.db&&S.uid&&!S.owner&&S.perfilLido&&S.perfil===null){box.replaceChildren(onboardForm());return}
@@ -475,6 +487,29 @@ function onboardForm(){
     go);
 }
 
+/* ---------- conclusão da revisão ---------- */
+function abrirConcluir(){
+  const n=Object.values(S.dec).filter(x=>x&&x.decisao).length,falta=D.items.length-n;
+  $("#concluir-txt").textContent="Você avaliou "+n+" de "+D.items.length+" achados"+(falta?"; "+falta+" ainda sem decisão. Você pode concluir assim mesmo, mas eles ficarão sem avaliação.":".")+" Informe o CRM e o código de conclusão que o autor enviou separadamente da senha de login.";
+  $("#c-crm").value="";$("#c-cod").value="";$("#c-ciente").checked=false;$("#c-ok").disabled=true;$("#c-err").textContent="";
+  $("#concluir").hidden=false;$("#c-crm").focus();
+}
+const checarConcluir=()=>{$("#c-ok").disabled=!($("#c-crm").value.trim()&&$("#c-cod").value&&$("#c-ciente").checked)};
+["c-crm","c-cod","c-ciente"].forEach(i=>$("#"+i).addEventListener("input",checarConcluir));
+$("#c-ciente").addEventListener("change",checarConcluir);
+$("#concluirbtn").onclick=abrirConcluir;
+$("#c-cancel").onclick=()=>{$("#concluir").hidden=true};
+$("#concluirform").addEventListener("submit",async e=>{
+  e.preventDefault();const ok=$("#c-ok"),err=$("#c-err");ok.disabled=true;err.textContent="";
+  try{
+    for(const id of Object.keys(pending)){if(pending[id]){clearTimeout(timers[id]);await flush(id)}}
+    const r=await BK.concluir($("#c-crm").value.trim(),$("#c-cod").value);
+    if(r==="ok"||r==="ja_concluida"){S.concluida=new Date().toISOString();$("#concluir").hidden=true;cabecalho();renderAll();showNotice("Revisão concluída. Obrigado: suas decisões ficam registradas e não podem mais ser alteradas.");return}
+    err.textContent=r==="bloqueado"?"Muitas tentativas incorretas. Aguarde 30 minutos ou peça ajuda ao autor.":r==="invalido"?"CRM ou código incorreto. Confira os dados enviados pelo autor.":"Seu acesso não está habilitado para concluir. Fale com o autor.";
+  }catch(x){err.textContent=/function/i.test(x.message||"")?"A conclusão ainda não foi habilitada no banco. Avise o autor.":"Não foi possível concluir: "+(x.message||x)}
+  finally{checarConcluir()}
+});
+
 /* ---------- painel do autor ---------- */
 function renderPanel(){
   const box=$("#panel");
@@ -483,7 +518,8 @@ function renderPanel(){
     const v=VINC.filter(([k])=>r.vinculos?.[k]).map(([,l])=>l.split(" (")[0]);
     return el("div",{class:"rev"},el("b",{text:r.nome||"Revisor sem nome"}),el("small",{text:(r.crm||"")+(r.instituicao?" · "+r.instituicao:"")+(r.email?" · "+r.email:"")}),
       el("span",{text:"Vínculos: "+(r.sem_vinculos?"nenhum declarado":(v.join(", ")||"não informado"))+(r.tipo_vinculo?" ("+r.tipo_vinculo+")":"")}),
-      el("span",{class:"mono",text:n+" de "+D.items.length+" avaliados"}))}):[el("div",{class:"empty",text:"Nenhum revisor cadastrado ainda. Quando alguém abrir o link e preencher o cadastro, aparece aqui."})];
+      el("span",{class:"mono",text:n+" de "+D.items.length+" avaliados"}),
+      el("span",{text:(()=>{const c=S.situ&&S.situ[(r.email||"").toLowerCase()];return c?"Revisão concluída em "+new Date(c).toLocaleDateString("pt-BR"):"Revisão em andamento"})()}))}):[el("div",{class:"empty",text:"Nenhum revisor cadastrado ainda. Quando alguém abrir o link e preencher o cadastro, aparece aqui."})];
   const rows=D.items.map(i=>{const ds=ids.map(id=>({id,d:S.revItems[id]?.[i.id]})).filter(x=>x.d&&(x.d.decisao||x.d.comentario));
     const kinds=new Set(ds.map(x=>x.d.decisao).filter(Boolean));const div=kinds.size>1||kinds.has("discordo")||kinds.has("ajuste");
     return {i,ds,div,com:ds.some(x=>x.d.comentario||x.d.sugestao)}})
@@ -520,7 +556,7 @@ async function exportHistorico(){
 $("#tabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)return;S.view=b.dataset.view;
   document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-pressed",t===b?"true":"false"));
   $("#desk").hidden=S.view!=="revisar";$("#panel").hidden=S.view!=="painel";if(S.view==="painel")renderPanel()});
-function renderAll(){renderFilters();renderList();renderProgress();renderDetail()}
+function renderAll(){renderFilters();renderList();renderProgress();renderDetail();if(window.__pronto)cabecalho()}
 
 /* ---------- sobre ---------- */
 $("#about-ver").textContent=D.versao.split("-").reverse().join("/");
@@ -541,6 +577,7 @@ renderAll();
 
 /* ---------- Supabase ---------- */
 const CFG=window.REVISAO_CONFIG||{};
+window.__pronto=true;
 const configurado=()=>/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(CFG.url||"")&&(CFG.chave||"").length>30&&!!window.supabase;
 let SB=null;S.perfilLido=false;S.email="";S.pulouLogin=false;
 const BK={
@@ -549,16 +586,21 @@ const BK={
   async autor(){const {data,error}=await SB.rpc("is_autor");return !error&&data===true},
   async perfil(){const {data,error}=await SB.from("perfis").select("*").eq("user_id",S.uid).maybeSingle();if(error)throw error;return data},
   async salvarPerfil(b){const {error}=await SB.from("perfis").upsert({...b,user_id:S.uid},{onConflict:"user_id"});if(error)throw error},
+  async minhaConclusao(){const {data,error}=await SB.rpc("minha_conclusao");return error?null:data},
+  async concluir(crm,cod){const {data,error}=await SB.rpc("concluir_revisao",{p_crm:crm,p_codigo:cod});if(error)throw error;return data},
+  async situacao(){const {data,error}=await SB.rpc("situacao_revisores");return error?[]:data},
   async salvarDecisao(id,b){const {error}=await SB.from("decisoes").upsert({user_id:S.uid,item_id:id,decisao:b.decisao,comentario:b.comentario,sugestao:b.sugestao,versao_base:D.versao},{onConflict:"user_id,item_id"});if(error)throw error}
 };
 async function carregarAutor(){
-  const [ps,ds]=await Promise.all([BK.lerTudo("perfis"),BK.lerTudo("decisoes")]);
+  const [ps,ds,sit]=await Promise.all([BK.lerTudo("perfis"),BK.lerTudo("decisoes"),BK.situacao()]);
+  S.situ={};for(const x of sit)S.situ[(x.email||"").toLowerCase()]=x.concluida_em;
   S.revs={};S.revItems={};for(const p of ps)S.revs[p.user_id]=p;
   for(const d of ds)(S.revItems[d.user_id]||={})[d.item_id]=d;
 }
 function cabecalho(){
   const on=!!S.uid;$("#loginbtn").hidden=on||!configurado();$("#logoutbtn").hidden=!on;$("#senhabtn").hidden=!on;
-  $("#whoami").textContent=on?S.email:"";$("#tabs").hidden=!S.owner;
+  $("#whoami").textContent=on?S.email:"";
+  $("#concluirbtn").hidden=!canDecide();$("#concluida-tag").hidden=!(on&&S.concluida&&!S.owner);$("#tabs").hidden=!S.owner;
 }
 function aviso(){
   const n=$("#notice");
@@ -599,6 +641,7 @@ async function iniciarSessao(u){
     S.perfil=await BK.perfil();S.perfilOk=!!(S.perfil&&S.perfil.declaracao);S.perfilLido=true;
     for(const d of await BK.lerTudo("decisoes",["user_id",S.uid]))S.dec[d.item_id]={decisao:d.decisao,comentario:d.comentario,sugestao:d.sugestao,atualizado:d.atualizado};
     if(S.owner)await carregarAutor();
+    else S.concluida=await BK.minhaConclusao();
   }catch(e){showNotice("Entrou, mas não foi possível ler seus dados: "+(e.message||e));cabecalho();renderAll();return}
   cabecalho();aviso();coverLabel();renderAll();
 }

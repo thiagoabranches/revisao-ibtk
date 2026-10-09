@@ -175,4 +175,4 @@ revoke all on public.revisores_autorizados, public.autores, public.perfis, publi
 
 -- Cadastre cada revisor (2 ou 3 hematologistas), com nome e CRM já conferidos no portal do CFM:
 -- insert into public.revisores_autorizados (email, nome, crm) values
---   ('maurojorgejr@gmail.com', 'Mauro Jorge Freitas de Souza Junior', 'CRM 153876/UF');
+--   ('maurojorgejr@gmail.com', 'Mauro Jorge Freitas de Souza Junior', 'CRM 153876/SP');

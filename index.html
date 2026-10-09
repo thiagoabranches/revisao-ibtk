@@ -335,6 +335,17 @@ td .c{color:var(--muted);font-size:12px;margin-top:3px;max-width:52ch}
 
 <section class="login wide" id="onb" hidden aria-modal="true" role="dialog" aria-label="Cadastro e declaração de vínculos"></section>
 
+<section class="login" id="ns" hidden role="dialog" aria-modal="true" aria-labelledby="ns-h">
+  <form id="nsform" novalidate>
+    <h2 id="ns-h">Defina a sua senha pessoal</h2>
+    <p>Por segurança, a senha enviada com o convite é <b>temporária</b>. Escolha agora uma senha só sua, com <b>pelo menos 12 caracteres</b>; uma frase com números funciona bem. Depois disso, a senha temporária deixa de funcionar. Você só faz isso uma vez.</p>
+    <label for="ns-a">Nova senha<input id="ns-a" type="password" autocomplete="new-password" minlength="12"></label>
+    <label for="ns-b">Repita a nova senha<input id="ns-b" type="password" autocomplete="new-password" minlength="12"></label>
+    <p class="err" id="ns-err" role="alert"></p>
+    <div class="row2"><button class="primary" id="ns-go" type="submit">Salvar e continuar</button><button class="link" id="ns-sair" type="button">Sair</button></div>
+  </form>
+</section>
+
 <section class="login" id="login" hidden aria-labelledby="login-h">
   <form id="loginform" novalidate>
     <h2 id="login-h">Entrar</h2>
@@ -1051,6 +1062,26 @@ $("#loginform").addEventListener("submit",async e=>{
   }catch(x){err.textContent="Não foi possível concluir: "+(x.message||x)}
   finally{ok.disabled=false}
 });
+
+/* troca obrigatória da senha temporária no primeiro acesso */
+function exigirNovaSenha(){return new Promise(res=>{
+  [document.querySelector("header.top"),$("#desk"),$("#panel")].forEach(a=>{if(a)a.inert=true});
+  $("#ns-a").value="";$("#ns-b").value="";$("#ns-err").textContent="";$("#ns").hidden=false;$("#ns-a").focus({preventScroll:true});S.nsRes=res})}
+$("#ns-sair").onclick=()=>sair();
+$("#nsform").addEventListener("submit",async e=>{
+  e.preventDefault();const a=$("#ns-a").value,b=$("#ns-b").value,err=$("#ns-err"),go=$("#ns-go");
+  if(a.length<12){err.textContent="Use pelo menos 12 caracteres.";return}
+  if(a!==b){err.textContent="As duas senhas não são iguais.";return}
+  if(/hematologia|1234|senha/i.test(a)||a.toLowerCase().includes((S.email||"").split("@")[0].toLowerCase())){err.textContent="Escolha uma senha menos previsível: sem “hematologia”, sequências como 1234 ou o seu e-mail.";return}
+  go.disabled=true;err.textContent="";
+  try{
+    const {error}=await SB.auth.updateUser({password:a,data:{senha_trocada:true,senha_trocada_em:new Date().toISOString()}});
+    if(error)throw error;
+    $("#ns").hidden=true;[document.querySelector("header.top"),$("#desk"),$("#panel")].forEach(x=>{if(x)x.inert=false});
+    if(S.nsRes){const r=S.nsRes;S.nsRes=null;r()}
+  }catch(x){err.textContent="Não foi possível salvar a senha: "+(x.message||x)}
+  finally{go.disabled=false}
+});
 async function iniciarSessao(u){
   S.uid=u.id;S.email=u.email||"";S.db=BK;
   try{
@@ -1060,6 +1091,7 @@ async function iniciarSessao(u){
     if(S.owner)await carregarAutor();
     await carregarFin();
   }catch(e){showNotice("Entrou, mas não foi possível ler seus dados: "+(e.message||e));cabecalho();renderAll();return}
+  if(!S.owner&&!(u.user_metadata&&u.user_metadata.senha_trocada))await exigirNovaSenha();
   cabecalho();aviso();coverLabel();renderAll();
   if(!S.owner){boasVindas();if(S.perfilOk&&S.fin&&!S.fin.tem_codigo)abrirCodigo()}
 }

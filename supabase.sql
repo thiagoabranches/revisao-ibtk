@@ -63,13 +63,45 @@ create table if not exists public.historico (
   registrado_em timestamptz not null default now()
 );
 
+-- ---------------------------------------------------------------- revisores autorizados
+-- Lista fechada, mantida só pelo autor (painel do Supabase). Só e-mails desta lista
+-- conseguem criar cadastro e registrar decisões, mesmo que alguém consiga criar uma conta.
+-- Nome e CRM vêm DESTA tabela (conferidos pelo autor), não do que a pessoa digita.
+create table if not exists public.revisores_autorizados (
+  email text primary key,
+  nome  text not null,
+  crm   text not null
+);
+alter table public.revisores_autorizados enable row level security;
+-- Sem políticas: leitura só pelas funções abaixo; edição só pelo painel do Supabase.
+
+create or replace function public.revisor_autorizado()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.revisores_autorizados
+                 where lower(email) = lower(coalesce(auth.jwt() ->> 'email', '')));
+$$;
+
+create or replace function public.meu_cadastro_autorizado()
+returns table (nome text, crm text) language sql stable security definer set search_path = public as $$
+  select r.nome, r.crm from public.revisores_autorizados r
+  where lower(r.email) = lower(coalesce(auth.jwt() ->> 'email', ''));
+$$;
+
 -- ---------------------------------------------------------------- carimbos do servidor
 -- Dono, e-mail e horário vêm da sessão e do relógio do servidor, nunca do navegador.
 create or replace function public.carimbar_perfil()
 returns trigger language plpgsql security definer set search_path = public as $$
+declare a record;
 begin
+  select r.nome, r.crm into a from public.revisores_autorizados r
+   where lower(r.email) = lower(coalesce(auth.jwt() ->> 'email', ''));
+  if not found then
+    raise exception 'E-mail não autorizado como revisor' using errcode = '42501';
+  end if;
   new.user_id    := auth.uid();
   new.email      := auth.jwt() ->> 'email';
+  new.nome       := a.nome;   -- identidade conferida pelo autor, não digitada
+  new.crm        := a.crm;
   new.atualizado := now();
   if tg_op = 'UPDATE' then new.criado := old.criado; end if;
   return new;
@@ -113,7 +145,7 @@ create policy perfis_ler on public.perfis for select to authenticated
   using (user_id = auth.uid() or public.is_autor());
 drop policy if exists perfis_criar on public.perfis;
 create policy perfis_criar on public.perfis for insert to authenticated
-  with check (user_id = auth.uid());
+  with check (user_id = auth.uid() and public.revisor_autorizado());
 drop policy if exists perfis_editar on public.perfis;
 create policy perfis_editar on public.perfis for update to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
@@ -124,7 +156,7 @@ create policy decisoes_ler on public.decisoes for select to authenticated
 -- Só decide quem já fez o cadastro com a declaração de vínculos.
 drop policy if exists decisoes_criar on public.decisoes;
 create policy decisoes_criar on public.decisoes for insert to authenticated
-  with check (user_id = auth.uid()
+  with check (user_id = auth.uid() and public.revisor_autorizado()
               and exists (select 1 from public.perfis p where p.user_id = auth.uid() and p.declaracao));
 drop policy if exists decisoes_editar on public.decisoes;
 create policy decisoes_editar on public.decisoes for update to authenticated
@@ -135,8 +167,12 @@ create policy historico_ler on public.historico for select to authenticated
   using (user_id = auth.uid() or public.is_autor());
 -- Sem políticas de escrita no histórico: só o gatilho grava nele.
 
-revoke all on public.autores, public.perfis, public.decisoes, public.historico from anon;
+revoke all on public.revisores_autorizados, public.autores, public.perfis, public.decisoes, public.historico from anon;
 
 -- ---------------------------------------------------------------- depois de rodar
 -- Cadastre o seu e-mail como autor (troque pelo seu):
 -- insert into public.autores (email) values ('seu-email@exemplo.com');
+
+-- Cadastre cada revisor (2 ou 3 hematologistas), com nome e CRM já conferidos no portal do CFM:
+-- insert into public.revisores_autorizados (email, nome, crm) values
+--   ('maurojorgejr@gmail.com', 'Mauro Jorge Freitas de Souza Junior', 'CRM 153876/UF');

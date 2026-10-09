@@ -474,8 +474,8 @@ async function flush(id){
 /* ---------- cadastro e declaração de vínculos ---------- */
 function onboardForm(){
   const p=S.perfil||{};const v=p.vinculos||{};
-  const nome=el("input",{type:"text",id:"o-nome",value:p.nome||"",autocomplete:"name"});
-  const crm=el("input",{type:"text",id:"o-crm",value:(p.crm&&p.crm!=="não informado")?p.crm:"",placeholder:"Opcional"});
+  const A=S.aut;const nome=el("input",{type:"text",id:"o-nome",value:A?A.nome:(p.nome||""),autocomplete:"name"});if(A)nome.readOnly=true;
+  const crm=el("input",{type:"text",id:"o-crm",value:A?A.crm:((p.crm&&p.crm!=="não informado")?p.crm:""),placeholder:"Opcional"});if(A)crm.readOnly=true;
   const inst=el("input",{type:"text",id:"o-inst",value:p.instituicao||""});
   const esp=el("input",{type:"text",id:"o-esp",value:p.especialidade||"Hematologia"});
   const vk=VINC.map(([k,l])=>{const c=el("input",{type:"checkbox",id:"v-"+k});c.checked=!!v[k];return el("label",{class:"ck",for:"v-"+k},c,l)});
@@ -492,7 +492,7 @@ function onboardForm(){
       vinculos:Object.fromEntries(VINC.map(([k])=>[k,$("#v-"+k).checked])),sem_vinculos:nenhum.checked,tipo_vinculo:tipo.value.trim(),
       declaracao:true,atualizado:new Date().toISOString()};
     try{await BK.salvarPerfil(body);S.perfil=body;S.perfilOk=true;renderAll()}
-    catch(e){go.disabled=false;go.textContent="Tentar de novo";$("#o-err").textContent="Não foi possível salvar o cadastro. Confira sua conexão e se você entrou com o e-mail convidado."}
+    catch(e){go.disabled=false;go.textContent="Tentar de novo";$("#o-err").textContent=(S.aut?"Não foi possível salvar o cadastro. Confira sua conexão.":"Este e-mail não está na lista de revisores autorizados. Fale com o autor.")}
   };
   return el("div",{class:"onboard"},
     el("h2",{text:"Antes de começar: cadastro e declaração de vínculos"}),
@@ -593,6 +593,7 @@ const BK={
   async lerTudo(tabela,filtro){const out=[];for(let i=0;;i+=1000){let q=SB.from(tabela).select("*");if(filtro)q=q.eq(filtro[0],filtro[1]);
     const {data,error}=await q.range(i,i+999);if(error)throw error;out.push(...data);if(data.length<1000)return out}},
   async autor(){const {data,error}=await SB.rpc("is_autor");return !error&&data===true},
+  async autorizado(){const {data,error}=await SB.rpc("meu_cadastro_autorizado");return (!error&&data&&data[0])||null},
   async perfil(){const {data,error}=await SB.from("perfis").select("*").eq("user_id",S.uid).maybeSingle();if(error)throw error;return data},
   async salvarPerfil(b){const {error}=await SB.from("perfis").upsert({...b,user_id:S.uid},{onConflict:"user_id"});if(error)throw error},
   async enviarPesquisa(r,c){const {error}=await SB.from("pesquisas").insert({user_id:S.uid,respostas:r,comentario:c,versao_base:D.versao});if(error)throw error},
@@ -680,7 +681,7 @@ $("#loginform").addEventListener("submit",async e=>{
 async function iniciarSessao(u){
   S.uid=u.id;S.email=u.email||"";S.db=BK;
   try{
-    S.owner=await BK.autor();
+    S.owner=await BK.autor();S.aut=S.owner?null:await BK.autorizado();
     S.perfil=await BK.perfil();S.perfilOk=!!(S.perfil&&S.perfil.declaracao);S.perfilLido=true;
     for(const d of await BK.lerTudo("decisoes",["user_id",S.uid]))S.dec[d.item_id]={decisao:d.decisao,comentario:d.comentario,sugestao:d.sugestao,atualizado:d.atualizado};
     if(S.owner)await carregarAutor();

@@ -229,6 +229,39 @@ td .c{color:var(--muted);font-size:12px;margin-top:3px;max-width:52ch}
 .filtbtn{display:none}
 @media (max-width:980px){.filtbtn{display:inline-block}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.login .onboard{margin:auto;width:100%}
+#onb{flex-direction:column}
+#onb .sairlink{align-self:center;margin:0 auto 8px}
+/* demonstração guiada */
+.demobox{max-width:640px;width:100%;margin:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:12px}
+.demobox h2{margin:0;font-family:var(--f-read);font-weight:500;font-size:22px}
+.demobox .dsub{margin:0;color:var(--muted);font-size:12.5px}
+.stage{border:1px solid var(--line);border-radius:10px;background:var(--bg);overflow:hidden;font-size:12px;color:var(--ink)}
+.mk-head{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--panel);font-weight:600}
+.mk-head span:first-child{white-space:nowrap}.mk-prog{flex:1;height:6px;background:var(--soft);border-radius:3px;overflow:hidden}.mk-prog i{display:block;height:100%;width:0;background:var(--ok);transition:width .6s}
+.mk-head b{font-family:var(--f-mono);font-weight:500;font-size:11px;white-space:nowrap}
+.mk-body{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr)}
+.mk-list{border-right:1px solid var(--line);padding:8px;display:flex;flex-direction:column;gap:6px;background:var(--panel)}
+.mk-filt{display:flex;gap:4px;flex-wrap:wrap}.mk-filt span{border:1px solid var(--line);border-radius:999px;padding:2px 7px;font-size:10.5px;color:var(--muted)}
+.mk-row{border:1px solid transparent;border-left:3px solid transparent;border-radius:6px;padding:6px;display:flex;flex-direction:column;gap:3px}
+.mk-row.on{background:var(--accent-soft);border-left-color:var(--accent)}.mk-row b{font-family:var(--f-mono);font-weight:500;font-size:10.5px}.mk-row em{font-style:normal;color:var(--muted);font-size:11px}
+.mk-pill{align-self:flex-start;border-radius:999px;padding:1px 7px;font-size:10px;background:var(--soft);color:var(--muted)}.mk-pill.aj{background:var(--warn-soft);color:var(--warn)}
+.mk-det{padding:10px;display:flex;flex-direction:column;gap:8px;position:relative}
+.mk-tag{margin:0;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mk-txt{margin:0;font-family:var(--f-read);font-size:14px;line-height:1.45}.mk-src{margin:0;color:var(--muted);font-size:11px}
+.mk-dbtns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.mk-dbtns span{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:6px 4px;text-align:center;font-weight:600;font-size:11px;transition:all .3s}
+.mk-dbtns span.sel{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.mk-cmt{min-height:34px;border:1px solid var(--line);border-radius:6px;padding:6px;background:var(--panel);font-size:11.5px;color:var(--ink)}
+.mk-saved{margin:0;color:var(--ok);font-weight:600;font-size:11px;opacity:0;transition:opacity .4s}.mk-saved.on{opacity:1}
+.mk-fin{align-self:flex-start;border:1px solid var(--line);background:var(--soft);border-radius:6px;padding:5px 9px;font-size:11px;font-weight:600;color:var(--muted)}
+.hl{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px;animation:dpulse 1.2s ease-in-out infinite}
+@keyframes dpulse{50%{outline-color:transparent}}
+@media (prefers-reduced-motion:reduce){.hl{animation:none}.mk-prog i,.mk-dbtns span,.mk-saved{transition:none}}
+.cap{margin:0;font-size:14px;line-height:1.5;min-height:3.9em}.cap b{color:var(--accent)}
+.dots{display:flex;gap:6px}.dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}.dots i.on{background:var(--accent)}
+@media (max-width:520px){.mk-body{grid-template-columns:1fr}.mk-list{border-right:0;border-bottom:1px solid var(--line)}}
 </style>
 </head>
 <body>
@@ -242,7 +275,7 @@ td .c{color:var(--muted);font-size:12px;margin-top:3px;max-width:52ch}
     <button class="tab" data-view="revisar" aria-pressed="true">Revisar</button>
     <button class="tab" data-view="painel" aria-pressed="false">Painel do autor</button>
   </nav>
-  <button class="aboutbtn" id="aboutbtn">Sobre</button>
+  <button class="aboutbtn" id="aboutbtn">Sobre</button><button class="aboutbtn" id="demobtn" type="button">Como usar</button>
   <div class="who"><span class="blind" title="Nenhum revisor vê as decisões dos outros. Só o autor da ferramenta vê o conjunto.">Revisão cega</span><span id="whoami"></span><button id="loginbtn" hidden>Entrar</button><button id="finbtn" hidden>Finalizar revisão</button><button id="senhabtn" hidden>Trocar senha</button><button id="logoutbtn" hidden>Sair</button></div>
 </header>
 <div class="notice" id="notice" hidden></div>
@@ -282,6 +315,8 @@ td .c{color:var(--muted);font-size:12px;margin-top:3px;max-width:52ch}
     <p class="fine">Cada decisão é salva na hora: dá para parar e voltar quando quiser. Os filtros permitem revisar só os eventos ou os iBTK da sua área. Nenhum revisor vê as decisões dos outros.</p>
   </div>
 </section>
+
+<section class="login wide" id="onb" hidden aria-modal="true" role="dialog" aria-label="Cadastro e declaração de vínculos"></section>
 
 <section class="login" id="login" hidden aria-labelledby="login-h">
   <form id="loginform" novalidate>
@@ -383,6 +418,44 @@ td .c{color:var(--muted);font-size:12px;margin-top:3px;max-width:52ch}
 
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+
+<section class="login" id="demoq" hidden aria-labelledby="demoq-h">
+  <form id="demoqform" novalidate>
+    <h2 id="demoq-h">Quer ver como preencher?</h2>
+    <p>Uma demonstração animada, de cerca de 1 minuto, mostra como avaliar um achado: ler a fonte, escolher a decisão, comentar e finalizar. <b>Nada que aparece nela é gravado.</b></p>
+    <p>Você pode rever a demonstração a qualquer momento, no botão “Como usar”, no topo.</p>
+    <div class="row2"><button class="primary" id="dq-sim" type="submit">Ver demonstração</button><button class="link" id="dq-nao" type="button">Agora não</button></div>
+  </form>
+</section>
+
+<section class="login wide" id="demo" hidden aria-labelledby="demo-h">
+  <div class="demobox">
+    <h2 id="demo-h">Como preencher: demonstração</h2>
+    <p class="dsub">Exemplo ilustrativo, com um achado fictício. Nada aqui é gravado.</p>
+    <div class="stage" aria-hidden="true">
+      <div class="mk-head"><span>Revisão iBTK</span><span class="mk-prog"><i id="d-bar"></i></span><b id="d-prog">0 de 148</b></div>
+      <div class="mk-body">
+        <div class="mk-list">
+          <div class="mk-filt" id="d-filt"><span>Evento: todos</span><span>iBTK: todos</span></div>
+          <div class="mk-row on" id="d-row"><b>E00</b><em>Achado de exemplo</em><span class="mk-pill" id="d-pill">Pendente</span></div>
+          <div class="mk-row"><b>E01</b><em>Outro achado</em><span class="mk-pill">Pendente</span></div>
+          <div class="mk-row"><b>E02</b><em>Outro achado</em><span class="mk-pill">Pendente</span></div>
+        </div>
+        <div class="mk-det">
+          <p class="mk-tag">Exemplo ilustrativo</p>
+          <div id="d-leitura"><p class="mk-txt">Em pacientes que interromperam o fármaco A por um evento, a maioria não teve recorrência do evento com o fármaco B.</p><p class="mk-src">Fonte: Autor et al., 2024 · Nível 3: prospectivo sem comparador</p></div>
+          <div class="mk-dbtns" id="d-dbtns"><span>Concordo</span><span id="d-aj">Concordo com ajuste</span><span>Discordo</span><span>Fora da minha área</span></div>
+          <div class="mk-cmt" id="d-cmt"></div>
+          <p class="mk-saved" id="d-saved">✓ Salvo automaticamente</p>
+          <span class="mk-fin" id="d-fin">Finalizar revisão</span>
+        </div>
+      </div>
+    </div>
+    <p class="cap" id="d-cap" aria-live="polite"></p>
+    <div class="dots" id="d-dots"></div>
+    <div class="row2"><button id="d-prev" type="button" class="ghost">Anterior</button><button id="d-play" type="button" class="ghost">Pausar</button><button id="d-next" type="button" class="primary">Próximo</button><button id="d-fecha" type="button" class="link">Fechar</button></div>
+  </div>
+</section>
 <script>if(!window.supabase)document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"><\/script>')</script>
 <script src="config.js?v=2"></script>
 <script>
@@ -457,9 +530,22 @@ function levelBadge(nv){const bars=[0,1,2,3,4,5,6].map(k=>el("b",{class:k>=nv&&n
 function select(id){S.sel=id;$("#desk").classList.add("showdetail");renderList();renderDetail();try{localStorage.setItem("rev-sel",id)}catch(e){}}
 function finalizada(){return !!(S.fin&&S.fin.finalizado_em)}
 function canDecide(){return !!(S.db&&S.uid&&S.perfilOk&&!S.owner&&!finalizada())}
+/* trava a página enquanto o cadastro e a declaração de vínculos não forem preenchidos */
+function bloquearParaCadastro(on){
+  const o=$("#onb"),alvos=[document.querySelector("header.top"),$("#desk"),$("#panel")];
+  alvos.forEach(a=>{if(a)a.inert=!!on});
+  if(on){
+    if(o.hidden||!o.firstChild){
+      const sair_=el("button",{class:"link sairlink",type:"button",text:"Sair sem preencher agora"});sair_.onclick=()=>sair();
+      o.replaceChildren(onboardForm(),sair_);o.hidden=false;o.scrollTop=0;
+      const f=o.querySelector("input:not([readonly])");if(f)f.focus({preventScroll:true});
+    }
+  }else if(!o.hidden){o.hidden=true;o.replaceChildren()}
+}
 function renderDetail(){
   const box=$("#detail");
-  if(S.db&&S.uid&&!S.owner&&S.perfilLido&&S.perfil===null){box.replaceChildren(onboardForm());return}
+  if(S.db&&S.uid&&!S.owner&&S.perfilLido&&S.perfil===null){bloquearParaCadastro(true);return}
+  bloquearParaCadastro(false);
   const i=D.items.find(x=>x.id===S.sel);
   if(!i){box.replaceChildren(el("div",{class:"empty",text:"Escolha um achado na fila para começar."}));return}
   const mine=S.dec[i.id]||{};
@@ -805,11 +891,58 @@ function abrirCalculo(){
 }
 $("#calcform").addEventListener("submit",e=>{e.preventDefault();$("#calc").hidden=true});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#calc").hidden)$("#calc").hidden=true});
+
+/* demonstração guiada: nada é gravado */
+const DEMO=(()=>{
+  const reduz=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const CMT="Redação clara. Sugiro citar a população estudada.";
+  const hlTargets=["#d-row","#d-leitura","#d-dbtns","#d-cmt","#d-filt","#d-fin"];
+  const cenas=[
+    ["1. Escolha um achado","Clique em um achado na lista. Os pendentes aparecem em cinza e, ao decidir, mudam de cor."],
+    ["2. Leia a afirmação e a fonte","Abaixo do texto estão a fonte e o nível da evidência. Confira se a afirmação é fiel à fonte e útil na prática."],
+    ["3. Marque a sua decisão","Concordo, Concordo com ajuste, Discordo ou Fora da minha área. Esta última é uma resposta legítima. Atalhos: teclas 1 a 4."],
+    ["4. Comente, se quiser","O comentário ajuda muito quando a decisão é “ajuste” ou “discordo”. Tudo é salvo na hora, e o progresso avança."],
+    ["5. Pare e volte quando quiser","Suas decisões ficam salvas. Os filtros permitem revisar só o evento ou o iBTK da sua área."],
+    ["6. Só no fim: finalizar","Use “Finalizar revisão” com o código que você criou, apenas quando tiver terminado. É definitivo e não pode ser desfeito."]];
+  let n=0,tm=null,tp=null,play=!reduz;
+  const q=s=>document.querySelector(s);
+  function limpa(){clearTimeout(tp);hlTargets.forEach(h=>q(h).classList.remove("hl"));
+    q("#d-aj").classList.remove("sel");q("#d-cmt").textContent="";q("#d-saved").classList.remove("on");
+    q("#d-pill").textContent="Pendente";q("#d-pill").className="mk-pill";q("#d-bar").style.width="0";q("#d-prog").textContent="0 de 148"}
+  function aplica(k){
+    limpa();n=k;
+    q("#d-cap").replaceChildren(Object.assign(document.createElement("b"),{textContent:cenas[k][0]+". "}),document.createTextNode(cenas[k][1]));
+    q("#d-cap b").textContent=cenas[k][0]+" ";
+    document.querySelectorAll("#d-dots i").forEach((d,i)=>d.classList.toggle("on",i===k));
+    q("#d-prev").disabled=k===0;q("#d-next").textContent=k===cenas.length-1?"Concluir":"Próximo";
+    if(k>=0)q(hlTargets[k]).classList.add("hl");
+    if(k>=2)q("#d-aj").classList.add("sel");
+    if(k>=3){q("#d-pill").textContent="Concordo com ajuste";q("#d-pill").className="mk-pill aj";q("#d-bar").style.width="1%";q("#d-prog").textContent="1 de 148";q("#d-saved").classList.add("on");
+      if(k===3&&!reduz){let i=0;const t=()=>{q("#d-cmt").textContent=CMT.slice(0,++i);if(i<CMT.length)tp=setTimeout(t,35)};t()}else q("#d-cmt").textContent=CMT}
+    if(k===4){q("#d-cmt").textContent=CMT}
+    clearTimeout(tm);if(play&&k<cenas.length-1)tm=setTimeout(()=>aplica(k+1),k===3?5200:4200);
+  }
+  function abrir(){const d=q("#demo");q("#d-dots").replaceChildren(...cenas.map(()=>document.createElement("i")));
+    play=!reduz;q("#d-play").textContent=play?"Pausar":"Continuar";q("#d-play").hidden=reduz;d.hidden=false;d.scrollTop=0;aplica(0);q("#d-next").focus({preventScroll:true})}
+  function fechar(){clearTimeout(tm);clearTimeout(tp);q("#demo").hidden=true;marca()}
+  function marca(){try{localStorage.setItem("rev-demo","1")}catch(e){}}
+  function visto(){try{return localStorage.getItem("rev-demo")==="1"}catch(e){return false}}
+  q("#d-next").onclick=()=>{if(n>=cenas.length-1)fechar();else aplica(n+1)};
+  q("#d-prev").onclick=()=>{if(n>0)aplica(n-1)};
+  q("#d-play").onclick=()=>{play=!play;q("#d-play").textContent=play?"Pausar":"Continuar";if(play)aplica(n);else clearTimeout(tm)};
+  q("#d-fecha").onclick=fechar;
+  q("#demobtn").onclick=abrir;
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!q("#demo").hidden)fechar();if(e.key==="Escape"&&!q("#demoq").hidden){q("#demoq").hidden=true;marca()}});
+  q("#demoqform").addEventListener("submit",e=>{e.preventDefault();q("#demoq").hidden=true;marca();abrir()});
+  q("#dq-nao").onclick=()=>{q("#demoq").hidden=true;marca()};
+  function perguntar(){if(visto())return;q("#demoq").hidden=false;q("#dq-sim").focus({preventScroll:true})}
+  return {perguntar,abrir};
+})();
 function boasVindas(){
   let visto=false;try{visto=sessionStorage.getItem("rev-bv")==="1"}catch(e){}
   if(visto)return;$("#bv").hidden=false;$("#bv-ok").focus({preventScroll:true});
 }
-$("#bvform").addEventListener("submit",e=>{e.preventDefault();$("#bv").hidden=true;try{sessionStorage.setItem("rev-bv","1")}catch(x){}});
+$("#bvform").addEventListener("submit",e=>{e.preventDefault();$("#bv").hidden=true;try{sessionStorage.setItem("rev-bv","1")}catch(x){}DEMO.perguntar()});
 $("#loginform").addEventListener("submit",async e=>{
   e.preventDefault();const ok=$("#l-ok"),err=$("#l-err"),senha=$("#l-senha").value;
   if(senha.length<8){err.textContent="A senha tem pelo menos 8 caracteres.";return}

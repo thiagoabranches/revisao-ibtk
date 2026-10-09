@@ -230,7 +230,7 @@ td .c{color:var(--muted);font-size:12px;margin-top:3px;max-width:52ch}
     <button class="tab" data-view="painel" aria-pressed="false">Painel do autor</button>
   </nav>
   <button class="aboutbtn" id="aboutbtn">Sobre</button>
-  <div class="who"><span class="blind" title="Nenhum revisor vê as decisões dos outros. Só o autor da ferramenta vê o conjunto.">Revisão cega</span><span id="whoami"></span><button id="loginbtn" hidden>Entrar</button><button id="senhabtn" hidden>Trocar senha</button><button id="logoutbtn" hidden>Sair</button></div>
+  <div class="who"><span class="blind" title="Nenhum revisor vê as decisões dos outros. Só o autor da ferramenta vê o conjunto.">Revisão cega</span><span id="whoami"></span><button id="loginbtn" hidden>Entrar</button><button id="finbtn" hidden>Finalizar revisão</button><button id="senhabtn" hidden>Trocar senha</button><button id="logoutbtn" hidden>Sair</button></div>
 </header>
 <div class="notice" id="notice" hidden></div>
 
@@ -286,8 +286,43 @@ td .c{color:var(--muted);font-size:12px;margin-top:3px;max-width:52ch}
     <h2 id="bv-h">Antes de começar</h2>
     <p>Esta é uma versão de teste: o que mais importa agora é a sua opinião sobre a experiência de uso e o conteúdo. Não precisa avaliar os 148 achados; abra alguns, registre uma decisão e um comentário.</p>
     <p>Duas ressalvas de conteúdo: a maioria dos achados é de nível 5 (consenso ou opinião de especialistas), e o E148 é um cálculo do autor, ainda não publicado. Detalhes em “Sobre o autor”, seção “O que esta base é e não é”.</p>
-    <p><b>Ao terminar, clique em “Sair” (no topo) em vez de fechar a página.</b> Vai abrir uma pesquisa rápida, de cerca de 1 minuto, com perguntas de múltipla escolha.</p>
+    <p>Quando <b>terminar de avaliar</b>, use “Finalizar revisão” (no topo), com o código que você vai criar no começo. A finalização é definitiva e gera um e-mail de confirmação com data e hora.</p>
+    <p><b>Para apenas sair, clique em “Sair” (no topo) em vez de fechar a página.</b> Vai abrir uma pesquisa rápida, de cerca de 1 minuto, com perguntas de múltipla escolha.</p>
     <div class="row2"><button class="primary" id="bv-ok" type="submit">Entendi</button></div>
+  </form>
+</section>
+
+<section class="login" id="cod" hidden aria-labelledby="cod-h">
+  <form id="codform" novalidate>
+    <h2 id="cod-h">Crie o seu código de finalização</h2>
+    <p>Este código é <b>diferente da senha de login</b>. Ele serve para uma única coisa: <b>encerrar a sua revisão</b>, quando você terminar de avaliar os achados.</p>
+    <p><b>Como funciona:</b> ao usar o código, a sua revisão é finalizada, com data e hora gravadas pelo servidor, e <b>suas decisões ficam travadas</b>. A finalização é <b>definitiva</b>: ninguém consegue desfazê-la, nem você nem o autor da ferramenta.</p>
+    <p>Por que existe: é a prova de que as respostas são suas e de que o autor não as alterou depois. Você e o autor recebem um e-mail com a data e a hora da finalização.</p>
+    <p><b>Use o código só quando tiver terminado.</b> Guarde-o em local seguro: o banco guarda apenas uma versão cifrada e não consegue mostrá-lo de novo.</p>
+    <label for="c-cod">Código (mínimo 8 caracteres)<input id="c-cod" type="password" autocomplete="new-password" minlength="8"></label>
+    <label for="c-cod2">Repita o código<input id="c-cod2" type="password" autocomplete="new-password" minlength="8"></label>
+    <label class="ck"><input id="c-ok" type="checkbox"> Entendi que o código só deve ser usado quando eu tiver finalizado a avaliação, e que depois disso não há como reabrir ou alterar.</label>
+    <p class="err" id="c-err" role="alert"></p>
+    <div class="row2"><button class="primary" id="c-go" type="submit" disabled>Criar código</button><button class="link" id="c-depois" type="button">Criar depois</button></div>
+  </form>
+</section>
+
+<section class="login" id="fin" hidden aria-labelledby="fin-h">
+  <form id="finform" novalidate>
+    <h2 id="fin-h">Finalizar a revisão</h2>
+    <div id="fin-corpo" style="display:flex;flex-direction:column;gap:14px">
+      <p id="fin-res"></p>
+      <p><b>Atenção: isto é definitivo.</b> Depois de finalizar, suas decisões ficam travadas e ninguém, nem você nem o autor, consegue reabrir ou alterar. Use só se terminou a avaliação.</p>
+      <label for="f-cod">Código de finalização<input id="f-cod" type="password" autocomplete="off"></label>
+      <label class="ck"><input id="f-ok" type="checkbox"> Confirmo que terminei a avaliação e que não poderei alterar nada depois.</label>
+      <p class="err" id="f-err" role="alert"></p>
+      <div class="row2"><button class="primary" id="f-go" type="submit" disabled>Finalizar definitivamente</button><button class="link" id="f-volta" type="button">Voltar à revisão</button></div>
+    </div>
+    <div id="fin-feito" hidden style="display:flex;flex-direction:column;gap:14px">
+      <p id="fin-quando"></p>
+      <p>Você e o autor receberão um e-mail com a data e a hora. Guarde o seu: ele comprova que o registro é seu. Obrigado pela colaboração.</p>
+      <div class="row2"><button class="primary" id="f-fecha" type="button">Fechar</button></div>
+    </div>
   </form>
 </section>
 
@@ -398,7 +433,8 @@ function renderProgress(){
 /* ---------- ficha ---------- */
 function levelBadge(nv){const bars=[0,1,2,3,4,5,6].map(k=>el("b",{class:k>=nv&&nv<9?"on":""}));return el("span",{class:"lvl",title:"Hierarquia da evidência: 0 = bula, 6 = revisão narrativa"},el("i",{},bars.reverse()),D.niveis[String(nv)]||"Não classificado")}
 function select(id){S.sel=id;$("#desk").classList.add("showdetail");renderList();renderDetail();try{localStorage.setItem("rev-sel",id)}catch(e){}}
-function canDecide(){return !!(S.db&&S.uid&&S.perfilOk&&!S.owner)}
+function finalizada(){return !!(S.fin&&S.fin.finalizado_em)}
+function canDecide(){return !!(S.db&&S.uid&&S.perfilOk&&!S.owner&&!finalizada())}
 function renderDetail(){
   const box=$("#detail");
   if(S.db&&S.uid&&!S.owner&&S.perfilLido&&S.perfil===null){box.replaceChildren(onboardForm());return}
@@ -434,7 +470,7 @@ function decideBox(i,mine){
     el("div",{class:"dbtns"},btns),
     el("div",{class:"fields"},el("label",{for:"com"},"Comentário",com),el("label",{for:"sug"},"Texto sugerido (opcional)",sug)),
     el("div",{class:"dfoot"},
-      el("span",{class:"save",id:"save","data-s":"",text:dis?(S.owner?"Você entrou como autor: as decisões ficam com os revisores.":S.uid?"Preencha o cadastro para registrar decisões.":"Entre com seu e-mail e senha para registrar decisões."):(mine.atualizado?"Salvo":"Sem decisão ainda")}),
+      el("span",{class:"save",id:"save","data-s":"",text:dis?(S.owner?"Você entrou como autor: as decisões ficam com os revisores.":S.uid?(finalizada()?"Revisão finalizada: suas decisões estão travadas.":"Preencha o cadastro para registrar decisões."):"Entre com seu e-mail e senha para registrar decisões."):(mine.atualizado?"Salvo":"Sem decisão ainda")}),
       el("span",{class:"nav"},el("button",{text:"↑ Anterior",onclick:()=>step(-1),disabled:idx<=0}),el("button",{text:"Próximo ↓",onclick:()=>step(1)}))));
 }
 function step(d){const v=visible();const k=v.findIndex(x=>x.id===S.sel);const n=v[Math.min(v.length-1,Math.max(0,k+d))];if(n)select(n.id)}
@@ -491,7 +527,7 @@ function onboardForm(){
     const body={nome:nome.value.trim(),crm:crm.value.trim()||"não informado",instituicao:inst.value.trim(),especialidade:esp.value.trim(),
       vinculos:Object.fromEntries(VINC.map(([k])=>[k,$("#v-"+k).checked])),sem_vinculos:nenhum.checked,tipo_vinculo:tipo.value.trim(),
       declaracao:true,atualizado:new Date().toISOString()};
-    try{await BK.salvarPerfil(body);S.perfil=body;S.perfilOk=true;renderAll()}
+    try{await BK.salvarPerfil(body);S.perfil=body;S.perfilOk=true;await carregarFin();cabecalho();renderAll();if(!S.fin.tem_codigo)abrirCodigo()}
     catch(e){go.disabled=false;go.textContent="Tentar de novo";$("#o-err").textContent=(S.aut?"Não foi possível salvar o cadastro. Confira sua conexão.":"Este e-mail não está na lista de revisores autorizados. Fale com o autor.")}
   };
   return el("div",{class:"onboard"},
@@ -593,6 +629,9 @@ const BK={
   async lerTudo(tabela,filtro){const out=[];for(let i=0;;i+=1000){let q=SB.from(tabela).select("*");if(filtro)q=q.eq(filtro[0],filtro[1]);
     const {data,error}=await q.range(i,i+999);if(error)throw error;out.push(...data);if(data.length<1000)return out}},
   async autor(){const {data,error}=await SB.rpc("is_autor");return !error&&data===true},
+  async fin(){const {data,error}=await SB.rpc("minha_finalizacao");if(error)throw error;return (data&&data[0])||{tem_codigo:false}},
+  async criarCodigo(c){const {error}=await SB.rpc("criar_codigo_finalizacao",{p_codigo:c});if(error)throw error},
+  async finalizar(c,total){const {data,error}=await SB.rpc("finalizar_revisao",{p_codigo:c,p_total_itens:total});if(error)throw error;return data},
   async autorizado(){const {data,error}=await SB.rpc("meu_cadastro_autorizado");return (!error&&data&&data[0])||null},
   async perfil(){const {data,error}=await SB.from("perfis").select("*").eq("user_id",S.uid).maybeSingle();if(error)throw error;return data},
   async salvarPerfil(b){const {error}=await SB.from("perfis").upsert({...b,user_id:S.uid},{onConflict:"user_id"});if(error)throw error},
@@ -606,7 +645,7 @@ async function carregarAutor(){
 }
 function cabecalho(){
   const on=!!S.uid;$("#loginbtn").hidden=on||!configurado();$("#logoutbtn").hidden=!on;$("#senhabtn").hidden=!on;
-  $("#whoami").textContent=on?S.email:"";$("#tabs").hidden=!S.owner;
+  $("#whoami").textContent=on?S.email:"";$("#tabs").hidden=!S.owner;$("#finbtn").hidden=!(on&&!S.owner&&S.perfilOk&&!finalizada());
 }
 function aviso(){
   const n=$("#notice");
@@ -661,6 +700,44 @@ $("#pesqform").addEventListener("submit",async e=>{
   try{await BK.enviarPesquisa(RP,$("#p-com").value.trim().slice(0,1500));S.pesquisaFeita=true;await sair()}
   catch(x){err.textContent="Não foi possível enviar agora. Tente de novo, ou use “Sair sem responder”.";ok.disabled=false}
 });
+
+/* ---------- finalização da revisão (código próprio, definitivo) ---------- */
+async function carregarFin(){S.fin={tem_codigo:false};if(S.owner||!S.perfilOk)return;try{S.fin=await BK.fin()}catch(e){S.fin={tem_codigo:false,erro:true}}}
+const quandoBR=iso=>new Date(iso).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",dateStyle:"long",timeStyle:"medium"});
+function abrirCodigo(){
+  if(S.fin&&S.fin.tem_codigo)return;
+  $("#c-cod").value="";$("#c-cod2").value="";$("#c-ok").checked=false;$("#c-err").textContent="";$("#c-go").disabled=true;$("#cod").hidden=false;$("#cod").scrollTop=0;
+}
+const chkCod=()=>{$("#c-go").disabled=!($("#c-cod").value.length>=8&&$("#c-cod").value===$("#c-cod2").value&&$("#c-ok").checked)};
+["#c-cod","#c-cod2","#c-ok"].forEach(s=>$(s).addEventListener("input",chkCod));
+$("#c-depois").onclick=()=>{$("#cod").hidden=true};
+$("#codform").addEventListener("submit",async e=>{
+  e.preventDefault();const go=$("#c-go"),err=$("#c-err");go.disabled=true;err.textContent="";
+  if($("#c-cod").value!==$("#c-cod2").value){err.textContent="Os dois códigos não são iguais.";return}
+  try{await BK.criarCodigo($("#c-cod").value);S.fin={tem_codigo:true};$("#cod").hidden=true;showNotice("Código de finalização criado. Guarde-o: ele só será pedido quando você terminar de avaliar.");setTimeout(aviso,6000)}
+  catch(x){err.textContent="Não foi possível criar o código: "+(x.message||x);go.disabled=false}
+});
+function abrirFinal(){
+  if(!S.fin||!S.fin.tem_codigo){abrirCodigo();return}
+  const av=Object.values(S.dec).filter(d=>d.decisao).length,tot=D.items.length;
+  $("#fin-res").textContent="Você avaliou "+av+" de "+tot+" achados"+(av<tot?" ("+(tot-av)+" sem decisão).":".");
+  $("#fin-corpo").hidden=false;$("#fin-feito").hidden=true;$("#f-cod").value="";$("#f-ok").checked=false;$("#f-err").textContent="";$("#f-go").disabled=true;$("#fin").hidden=false;$("#fin").scrollTop=0;
+}
+const chkFin=()=>{$("#f-go").disabled=!($("#f-cod").value.length>=1&&$("#f-ok").checked)};
+["#f-cod","#f-ok"].forEach(s=>$(s).addEventListener("input",chkFin));
+$("#finbtn").onclick=abrirFinal;
+$("#f-volta").onclick=()=>{$("#fin").hidden=true};
+$("#f-fecha").onclick=()=>{$("#fin").hidden=true};
+$("#finform").addEventListener("submit",async e=>{
+  e.preventDefault();const go=$("#f-go"),err=$("#f-err");go.disabled=true;err.textContent="";
+  let r;try{r=await BK.finalizar($("#f-cod").value,D.items.length)}catch(x){err.textContent="Não foi possível finalizar agora: "+(x.message||x);go.disabled=false;return}
+  if(r&&r.ok){S.fin={tem_codigo:true,finalizado_em:r.finalizado_em,resumo:r.resumo,hash_decisoes:r.hash_decisoes};
+    $("#fin-quando").textContent="Revisão finalizada em "+quandoBR(r.finalizado_em)+" (horário de Brasília).";
+    $("#fin-corpo").hidden=true;$("#fin-feito").hidden=false;cabecalho();renderAll();return}
+  const m=r&&r.motivo;
+  err.textContent=m==="codigo_incorreto"?"Código incorreto. Tentativas restantes: "+r.restantes+".":m==="bloqueado"?"Código bloqueado por tentativas erradas. Fale com o autor.":m==="ja_finalizada"?"Esta revisão já foi finalizada.":m==="sem_codigo"?"Você ainda não criou o código de finalização.":"Não foi possível finalizar.";
+  go.disabled=false;
+});
 function boasVindas(){
   let visto=false;try{visto=sessionStorage.getItem("rev-bv")==="1"}catch(e){}
   if(visto)return;$("#bv").hidden=false;$("#bv-ok").focus({preventScroll:true});
@@ -685,9 +762,10 @@ async function iniciarSessao(u){
     S.perfil=await BK.perfil();S.perfilOk=!!(S.perfil&&S.perfil.declaracao);S.perfilLido=true;
     for(const d of await BK.lerTudo("decisoes",["user_id",S.uid]))S.dec[d.item_id]={decisao:d.decisao,comentario:d.comentario,sugestao:d.sugestao,atualizado:d.atualizado};
     if(S.owner)await carregarAutor();
+    await carregarFin();
   }catch(e){showNotice("Entrou, mas não foi possível ler seus dados: "+(e.message||e));cabecalho();renderAll();return}
   cabecalho();aviso();coverLabel();renderAll();
-  if(!S.owner)boasVindas();
+  if(!S.owner){boasVindas();if(S.perfilOk&&S.fin&&!S.fin.tem_codigo)abrirCodigo()}
 }
 (async()=>{
   cabecalho();aviso();

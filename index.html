@@ -180,6 +180,19 @@ legend{font-size:12px;color:var(--muted);padding:0 4px}
 .login label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
 .login input{padding:9px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg);font-size:14px}
 .login .row2{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.calcbody{display:flex;flex-direction:column;gap:14px}
+.calcbody h3{margin:6px 0 0;font-size:15px}
+.calcbody p,.calcbody li{color:var(--ink);font-size:13.5px;line-height:1.55;max-width:68ch}
+.calcbody ol,.calcbody ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.calcbody .lede{font-size:15px}
+.calcbody .formula{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:var(--soft);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;overflow-x:auto;white-space:pre}
+.calcbody .tbl{overflow-x:auto}
+.calcbody table{border-collapse:collapse;font-size:12.5px;min-width:520px;width:100%}
+.calcbody th,.calcbody td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+.calcbody th{color:var(--muted);font-weight:500}
+.calcbody .refs li{font-size:12.5px;color:var(--muted)}
+.calcbody .refs a{color:var(--accent)}
+.calcbtn{align-self:flex-start;background:var(--soft);border:1px solid var(--line);border-radius:var(--r);padding:8px 12px;font-size:13px;color:var(--ink);cursor:pointer}
 .login .link{background:none;border:0;color:var(--accent);padding:0;font-size:13px;text-decoration:underline}
 .login .err{color:var(--bad);font-size:13px;min-height:1em}
 .login.wide form{max-width:560px}
@@ -326,6 +339,14 @@ td .c{color:var(--muted);font-size:12px;margin-top:3px;max-width:52ch}
   </form>
 </section>
 
+<section class="login wide" id="calc" hidden aria-labelledby="calc-h">
+  <form id="calcform" novalidate>
+    <h2 id="calc-h">De onde vem este cálculo</h2>
+    <div id="calc-corpo" class="calcbody"></div>
+    <div class="row2"><button class="primary" id="calc-ok" type="submit">Entendi, voltar ao achado</button></div>
+  </form>
+</section>
+
 <section class="login wide" id="pesq" hidden aria-labelledby="pesq-h">
   <form id="pesqform" novalidate>
     <h2 id="pesq-h">Antes de sair: 1 minuto de pesquisa</h2>
@@ -446,6 +467,7 @@ function renderDetail(){
     el("button",{class:"backbtn",text:"← Fila",onclick:()=>$("#desk").classList.remove("showdetail")}),
     el("div",{class:"shead"},el("span",{class:"bigid",text:i.id}),el("span",{class:"pill p-pend",text:FAM[i.fam]}),levelBadge(i.nv),i.pend?[el("span",{class:"pill p-flag",text:"Cálculo do autor, não publicado"}),el("span",{class:"pill p-flag",text:"Pendente de revisão"})]:null),
     i.pend?el("div",{class:"flagbox",text:"Este item não é evidência publicada: é um cálculo do próprio autor da ferramenta (comparação indireta ancorada, método de Bucher, com dados agregados de dois ensaios), sem revisão por pares. Ele só perde a marca de pendente depois da revisão de vocês e não deve ser citado como resultado de estudo. Avalie a conta, a comparabilidade dos ensaios e a redação."}):null,
+    i.pend?el("button",{class:"calcbtn",type:"button",text:"Como este cálculo foi feito e de onde vêm os números",onclick:abrirCalculo}):null,
     el("div",{},el("p",{class:"claim-label",text:"O que a ferramenta afirma"}),el("p",{class:"claim",text:i.txt})),
     el("dl",{class:"meta"},
       el("div",{},el("dt",{text:"Evento adverso"}),el("dd",{text:listaNomes(i.ev,D.eventos,nomeEv)})),
@@ -739,6 +761,51 @@ $("#finform").addEventListener("submit",async e=>{
   err.textContent=m==="codigo_incorreto"?"Código incorreto. Tentativas restantes: "+r.restantes+".":m==="bloqueado"?"Código bloqueado por tentativas erradas. Fale com o autor.":m==="ja_finalizada"?"Esta revisão já foi finalizada.":m==="sem_codigo"?"Você ainda não criou o código de finalização.":"Não foi possível finalizar.";
   go.disabled=false;
 });
+
+/* ---------- explicação do cálculo do autor (E148) ---------- */
+function abrirCalculo(){
+  const P=(t)=>el("p",{text:t}),H=(t)=>el("h3",{text:t});
+  const li=(t)=>el("li",{text:t});
+  const row=(c,th)=>el("tr",{},...c.map(x=>el(th?"th":"td",{text:x})));
+  const tabela=el("div",{class:"tbl"},el("table",{},
+    el("thead",{},row(["Passo","ALPINE (zanubrutinibe contra ibrutinibe)","ELEVATE-RR (acalabrutinibe contra ibrutinibe)","Resultado: zanubrutinibe contra acalabrutinibe"],1)),
+    el("tbody",{},
+      row(["Análise primária, avaliação por comitê independente","HR 0,65 (IC95% 0,49–0,86)","HR 1,00 (IC95% 0,79–1,27)","HR 0,65 (IC95% 0,45–0,94)"]),
+      row(["Análise final do ALPINE, avaliação pelo investigador","HR 0,68 (IC95% 0,54–0,84)","HR 1,00 (IC95% 0,79–1,27)","HR 0,68 (IC95% 0,49–0,94)"]))));
+  const refKeys=["bucher_alpine_elevaterr","brown2023","brown2024_alpine","byrd2021","shadman2025_maic"];
+  const refs=el("ol",{class:"refs"},...refKeys.filter(k=>D.refs[k]).map(k=>{
+    const r=D.refs[k];const t=r.abnt.replace(/\s*Cálculo do autor.*$/,"");
+    return el("li",{},t+" ",r.url?el("a",{href:r.url,target:"_blank",rel:"noopener noreferrer",text:r.url}):"")}));
+  $("#calc-corpo").replaceChildren(
+    el("p",{class:"lede",text:"Em uma frase: não existe estudo que tenha colocado zanubrutinibe e acalabrutinibe frente a frente, então o autor fez uma conta que compara os dois de forma indireta, usando o ibrutinibe como ponto em comum. É um cálculo, não um resultado de estudo, e por isso pedimos a sua revisão."}),
+    H("Por que o cálculo existe"),
+    P("Os dois medicamentos foram testados contra o ibrutinibe, em ensaios diferentes. Quem quer saber como eles se comparam entre si não tem uma resposta direta. Já há comparações indiretas publicadas, mas elas vêm de patrocinadores opostos. O autor refez a conta de forma aberta, com os números publicados, para que qualquer pessoa possa conferir cada passo."),
+    H("Como a conta foi feita"),
+    el("ol",{},
+      li("Pegamos o resultado de cada ensaio contra o ibrutinibe: a razão de risco (HR) de progressão ou morte, com o intervalo de confiança de 95%."),
+      li("Dividimos um HR pelo outro. Se o zanubrutinibe reduz o risco em relação ao ibrutinibe e o acalabrutinibe fica igual a ele, a conta indica uma vantagem do zanubrutinibe sobre o acalabrutinibe."),
+      li("Somamos a incerteza dos dois resultados. Como a incerteza de cada ensaio se acumula, o intervalo da comparação indireta fica sempre mais largo do que o de cada ensaio sozinho.")),
+    el("div",{class:"formula",text:"HR indireto = HR(A contra ibrutinibe) ÷ HR(B contra ibrutinibe)\nEP de cada HR = (ln limite superior − ln limite inferior) ÷ (2 × 1,96)\nEP combinado = raiz quadrada de (EP₁² + EP₂²)\nIC95% = exp[ ln(HR indireto) ± 1,96 × EP combinado ]"}),
+    tabela,
+    P("Leitura: HR abaixo de 1 favorece o zanubrutinibe. Nos dois cenários o limite superior do intervalo fica abaixo de 1, mas perto dele (0,94). Isso sustenta uma tendência, não uma certeza."),
+    H("Para conferir"),
+    P("Um resultado independente aponta na mesma direção: uma comparação com ajuste estatístico por características dos pacientes (MAIC, Shadman e cols., 2025) encontrou HR de 0,68 (IC95% 0,46–0,99) para progressão ou morte. Ela, porém, foi feita por autores ligados ao fabricante do zanubrutinibe, e também é uma comparação indireta."),
+    H("O que pode estar errado"),
+    el("ul",{},
+      li("Os pacientes não são iguais. O ELEVATE-RR incluiu só pacientes de alto risco, com del(17p) ou del(11q), e o ALPINE incluiu todos. Se o efeito do tratamento muda com o risco, a conta perde validade."),
+      li("Os avaliadores diferem. O HR do ALPINE final vem do investigador, e o do ELEVATE-RR, do comitê independente. Por isso mostramos também o cenário com comitê independente nos dois."),
+      li("Não houve sorteio entre os dois medicamentos. Qualquer diferença entre os ensaios, como época, linhas prévias de tratamento e acompanhamento, pode distorcer o resultado."),
+      li("O resultado deve ser lido como pista, nunca como prova.")),
+    H("Sobre o autor e o possível conflito de interesses"),
+    P("O autor da ferramenta é palestrante da BeOne Medicines, fabricante do zanubrutinibe. Esta ferramenta não tem financiamento da empresa, mas é justamente por isso que a conta está aberta e que ela só perde a marca de pendente depois da revisão independente de vocês."),
+    H("O que pedimos a você"),
+    P("Diga se a conta está correta, se os números de entrada batem com os artigos, se a comparação é aceitável apesar das diferenças entre os ensaios e se a redação do achado deixa claro que se trata de uma estimativa e não de um resultado de estudo."),
+    H("Referências"),
+    refs);
+  $("#calc").hidden=false;$("#calc").scrollTop=0;$("#calc-ok").focus({preventScroll:true});
+}
+$("#calcform").addEventListener("submit",e=>{e.preventDefault();$("#calc").hidden=true});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#calc").hidden)$("#calc").hidden=true});
 function boasVindas(){
   let visto=false;try{visto=sessionStorage.getItem("rev-bv")==="1"}catch(e){}
   if(visto)return;$("#bv").hidden=false;$("#bv-ok").focus({preventScroll:true});

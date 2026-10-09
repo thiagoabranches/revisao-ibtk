@@ -284,10 +284,10 @@ td .c{color:var(--muted);font-size:12px;margin-top:3px;max-width:52ch}
 <section class="login" id="bv" hidden aria-labelledby="bv-h">
   <form id="bvform" novalidate>
     <h2 id="bv-h">Antes de começar</h2>
-    <p>Esta é uma versão de teste: o que mais importa agora é a sua opinião sobre a experiência de uso e o conteúdo. Não precisa avaliar os 148 achados; abra alguns, registre uma decisão e um comentário.</p>
+    <p>Obrigado por revisar esta base. Cada achado é uma afirmação extraída de uma fonte citada e classificada por nível de evidência. Para cada um, registre se <b>concorda</b>, pede <b>ajuste</b>, <b>discorda</b> ou considera <b>fora do escopo</b>; comentários e sugestões de redação são bem-vindos.</p>
     <p>Duas ressalvas de conteúdo: a maioria dos achados é de nível 5 (consenso ou opinião de especialistas), e o E148 é um cálculo do autor, ainda não publicado. Detalhes em “Sobre o autor”, seção “O que esta base é e não é”.</p>
-    <p>Quando <b>terminar de avaliar</b>, use “Finalizar revisão” (no topo), com o código que você vai criar no começo. A finalização é definitiva e gera um e-mail de confirmação com data e hora.</p>
-    <p><b>Para apenas sair, clique em “Sair” (no topo) em vez de fechar a página.</b> Vai abrir uma pesquisa rápida, de cerca de 1 minuto, com perguntas de múltipla escolha.</p>
+    <p>Suas decisões são salvas a cada clique, e você pode parar e voltar quando quiser. Quando <b>terminar de avaliar</b>, use “Finalizar revisão” (no topo), com o código que você vai criar no começo. A finalização é definitiva e gera um e-mail de confirmação com data e hora.</p>
+    <p>Para apenas sair, clique em “Sair” (no topo).</p>
     <div class="row2"><button class="primary" id="bv-ok" type="submit">Entendi</button></div>
   </form>
 </section>
@@ -668,8 +668,7 @@ $("#l-pular").onclick=()=>{if($("#login").dataset.modo==="entrar")S.pulouLogin=t
 $("#loginbtn").onclick=()=>abrirLogin("entrar");
 $("#senhabtn").onclick=()=>abrirLogin("senha");
 async function sair(){S.saindo=true;try{await SB.auth.signOut()}catch(e){};location.reload()}
-$("#logoutbtn").onclick=()=>{if(S.owner||S.pesquisaFeita)sair();else abrirPesquisa()};
-window.addEventListener("beforeunload",e=>{if(S.uid&&!S.owner&&!S.pesquisaFeita&&!S.saindo){e.preventDefault();e.returnValue=""}});
+$("#logoutbtn").onclick=()=>sair();
 
 /* ---------- boas-vindas e pesquisa de saída ---------- */
 const LIK=["Discordo muito","Discordo","Neutro","Concordo","Concordo muito"];

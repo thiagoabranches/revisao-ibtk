@@ -61,3 +61,36 @@ Entre com o seu usuário: aparece a aba **Painel do autor**. Nela você tem:
 - A chave pública no `config.js` é visível para qualquer pessoa, por desenho do Supabase. Quem protege os dados são as regras do `supabase.sql`.
 - No plano gratuito, o Supabase pausa projetos sem uso por cerca de uma semana. Basta reativar no painel; os dados são mantidos.
 - Para atualizar os achados (nova versão da base), gere um novo `index.html` e substitua no repositório. Cada decisão guarda a versão da base em que foi feita (`versao_base`).
+
+## Lista de revisores e finalização
+
+Rode, nesta ordem, no SQL Editor: `supabase.sql` e depois `supabase_finalizacao.sql` (ambos podem ser repetidos).
+
+**Lista fechada.** Só e-mails da tabela `revisores_autorizados` conseguem criar cadastro e registrar decisões. Nome e CRM vêm dessa tabela, conferidos por você (por exemplo, no portal do CFM), e não do que a pessoa digita:
+
+```sql
+insert into public.revisores_autorizados (email, nome, crm) values
+  ('revisor@exemplo.com', 'Nome Completo', 'CRM 000000/UF');
+```
+
+**Finalização.** No primeiro acesso, depois do cadastro, o revisor cria um **código de finalização**, separado da senha de login, com um aviso explicando que a finalização é definitiva. Quando termina de avaliar, usa "Finalizar revisão" e digita o código. Daí em diante:
+
+- as decisões e o cadastro dele ficam travados no banco: nem ele, nem você, nem a página alteram;
+- o servidor grava data e hora e um hash SHA-256 das decisões;
+- o código só é guardado cifrado, e 5 erros bloqueiam a tentativa.
+
+Revisor perdeu o código e ainda não finalizou: apague só a linha dele em `finalizacoes` (comando comentado no fim do `supabase_finalizacao.sql`) e ele cria outro.
+
+Limite: o dono do projeto Supabase pode, tecnicamente, desligar um gatilho. A prova contra isso é o conjunto: hash das decisões, mais o e-mail com data e hora que o revisor recebe e que você não controla.
+
+### E-mails de finalização
+
+A gravação da finalização dispara dois e-mails: ao revisor (agradecimento, data e hora, hash) e a você (aviso curto). Passo a passo:
+
+1. Crie uma conta no Resend (resend.com) e verifique um domínio seu. Sem domínio verificado, o Resend só envia ao e-mail do próprio dono da conta.
+2. Instale a CLI do Supabase e publique a função:
+   `supabase functions deploy notificar-finalizacao --no-verify-jwt`
+3. Defina os segredos:
+   `supabase secrets set RESEND_API_KEY=... EMAIL_REMETENTE="Revisão iBTK <revisao@seudominio.com.br>" AUTOR_EMAIL=seu@email WEBHOOK_SECRET=uma-frase-longa`
+4. No painel, em Database > Webhooks > Create: tabela `finalizacoes`, evento **Update**, tipo **Supabase Edge Functions** (ou HTTP Request para a URL da função), com o cabeçalho `x-webhook-secret` igual ao `WEBHOOK_SECRET`.
+5. Teste com um revisor de teste antes de convidar os reais.

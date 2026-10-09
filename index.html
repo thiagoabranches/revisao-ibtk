@@ -182,6 +182,10 @@ legend{font-size:12px;color:var(--muted);padding:0 4px}
 .login .row2{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .login .link{background:none;border:0;color:var(--accent);padding:0;font-size:13px;text-decoration:underline}
 .login .err{color:var(--bad);font-size:13px;min-height:1em}
+.login.wide form{max-width:560px}
+.login .q{display:flex;flex-direction:column;gap:6px}.login .qt{margin:0;color:var(--ink);font-size:13px}.login .opts{display:flex;gap:6px;flex-wrap:wrap}
+.login .pg{margin:6px 0 0;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.login textarea{padding:9px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg);font-size:14px;min-height:64px;resize:vertical;color:var(--ink)}
 .who button{border:1px solid var(--line);background:transparent;padding:4px 10px;border-radius:999px;font-size:12px}
 
 /* painel do autor */
@@ -226,7 +230,7 @@ td .c{color:var(--muted);font-size:12px;margin-top:3px;max-width:52ch}
     <button class="tab" data-view="painel" aria-pressed="false">Painel do autor</button>
   </nav>
   <button class="aboutbtn" id="aboutbtn">Sobre</button>
-  <div class="who"><span class="blind" title="Nenhum revisor vê as decisões dos outros. Só o autor da ferramenta vê o conjunto.">Revisão cega</span><span id="whoami"></span><button id="loginbtn" hidden>Entrar</button><button id="senhabtn" hidden>Trocar senha</button><button id="logoutbtn" hidden>Sair</button></div>
+  <div class="who"><span class="blind" title="Nenhum revisor vê as decisões dos outros. Só o autor da ferramenta vê o conjunto.">Revisão cega</span><span id="whoami"></span><button id="loginbtn" hidden>Entrar</button><button id="finbtn" hidden>Finalizar revisão</button><button id="senhabtn" hidden>Trocar senha</button><button id="logoutbtn" hidden>Sair</button></div>
 </header>
 <div class="notice" id="notice" hidden></div>
 
@@ -277,6 +281,62 @@ td .c{color:var(--muted);font-size:12px;margin-top:3px;max-width:52ch}
   </form>
 </section>
 
+<section class="login" id="bv" hidden aria-labelledby="bv-h">
+  <form id="bvform" novalidate>
+    <h2 id="bv-h">Antes de começar</h2>
+    <p>Esta é uma versão de teste: o que mais importa agora é a sua opinião sobre a experiência de uso e o conteúdo. Não precisa avaliar os 148 achados; abra alguns, registre uma decisão e um comentário.</p>
+    <p>Duas ressalvas de conteúdo: a maioria dos achados é de nível 5 (consenso ou opinião de especialistas), e o E148 é um cálculo do autor, ainda não publicado. Detalhes em “Sobre o autor”, seção “O que esta base é e não é”.</p>
+    <p>Quando <b>terminar de avaliar</b>, use “Finalizar revisão” (no topo), com o código que você vai criar no começo. A finalização é definitiva e gera um e-mail de confirmação com data e hora.</p>
+    <p><b>Para apenas sair, clique em “Sair” (no topo) em vez de fechar a página.</b> Vai abrir uma pesquisa rápida, de cerca de 1 minuto, com perguntas de múltipla escolha.</p>
+    <div class="row2"><button class="primary" id="bv-ok" type="submit">Entendi</button></div>
+  </form>
+</section>
+
+<section class="login" id="cod" hidden aria-labelledby="cod-h">
+  <form id="codform" novalidate>
+    <h2 id="cod-h">Crie o seu código de finalização</h2>
+    <p>Este código é <b>diferente da senha de login</b>. Ele serve para uma única coisa: <b>encerrar a sua revisão</b>, quando você terminar de avaliar os achados.</p>
+    <p><b>Como funciona:</b> ao usar o código, a sua revisão é finalizada, com data e hora gravadas pelo servidor, e <b>suas decisões ficam travadas</b>. A finalização é <b>definitiva</b>: ninguém consegue desfazê-la, nem você nem o autor da ferramenta.</p>
+    <p>Por que existe: é a prova de que as respostas são suas e de que o autor não as alterou depois. Você e o autor recebem um e-mail com a data e a hora da finalização.</p>
+    <p><b>Use o código só quando tiver terminado.</b> Guarde-o em local seguro: o banco guarda apenas uma versão cifrada e não consegue mostrá-lo de novo.</p>
+    <label for="c-cod">Código (mínimo 8 caracteres)<input id="c-cod" type="password" autocomplete="new-password" minlength="8"></label>
+    <label for="c-cod2">Repita o código<input id="c-cod2" type="password" autocomplete="new-password" minlength="8"></label>
+    <label class="ck"><input id="c-ok" type="checkbox"> Entendi que o código só deve ser usado quando eu tiver finalizado a avaliação, e que depois disso não há como reabrir ou alterar.</label>
+    <p class="err" id="c-err" role="alert"></p>
+    <div class="row2"><button class="primary" id="c-go" type="submit" disabled>Criar código</button><button class="link" id="c-depois" type="button">Criar depois</button></div>
+  </form>
+</section>
+
+<section class="login" id="fin" hidden aria-labelledby="fin-h">
+  <form id="finform" novalidate>
+    <h2 id="fin-h">Finalizar a revisão</h2>
+    <div id="fin-corpo" style="display:flex;flex-direction:column;gap:14px">
+      <p id="fin-res"></p>
+      <p><b>Atenção: isto é definitivo.</b> Depois de finalizar, suas decisões ficam travadas e ninguém, nem você nem o autor, consegue reabrir ou alterar. Use só se terminou a avaliação.</p>
+      <label for="f-cod">Código de finalização<input id="f-cod" type="password" autocomplete="off"></label>
+      <label class="ck"><input id="f-ok" type="checkbox"> Confirmo que terminei a avaliação e que não poderei alterar nada depois.</label>
+      <p class="err" id="f-err" role="alert"></p>
+      <div class="row2"><button class="primary" id="f-go" type="submit" disabled>Finalizar definitivamente</button><button class="link" id="f-volta" type="button">Voltar à revisão</button></div>
+    </div>
+    <div id="fin-feito" hidden style="display:flex;flex-direction:column;gap:14px">
+      <p id="fin-quando"></p>
+      <p>Você e o autor receberão um e-mail com a data e a hora. Guarde o seu: ele comprova que o registro é seu. Obrigado pela colaboração.</p>
+      <div class="row2"><button class="primary" id="f-fecha" type="button">Fechar</button></div>
+    </div>
+  </form>
+</section>
+
+<section class="login wide" id="pesq" hidden aria-labelledby="pesq-h">
+  <form id="pesqform" novalidate>
+    <h2 id="pesq-h">Antes de sair: 1 minuto de pesquisa</h2>
+    <p>Oito perguntas de múltipla escolha e um campo opcional. Suas respostas ficam registradas com o seu acesso e só o autor as lê.</p>
+    <div id="pesq-q" style="display:flex;flex-direction:column;gap:12px"></div>
+    <label for="p-com">O que mais atrapalhou ou faltou? (opcional)<textarea id="p-com" maxlength="1500"></textarea></label>
+    <p class="err" id="p-err" role="alert"></p>
+    <div class="row2"><button class="primary" id="p-ok" type="submit" disabled>Enviar e sair</button><button class="link" id="p-volta" type="button">Voltar à revisão</button><button class="link" id="p-pula" type="button">Sair sem responder</button></div>
+  </form>
+</section>
+
 <section class="about" id="about" hidden aria-labelledby="about-h">
   <article>
     <p class="kick">Antes de revisar</p>
@@ -288,6 +348,11 @@ td .c{color:var(--muted);font-size:12px;margin-top:3px;max-width:52ch}
     <p>O núcleo da ferramenta é engenharia de dados em Python, conduzida pelo autor: a base de evidências é estruturada em tabelas versionadas, um validador aplica as regras de classificação, e 84 testes automatizados verificam a cada alteração referências, níveis, patrocínio e termos proibidos de linguagem promocional. Assistentes de IA foram usados como apoio na programação e na extração de dados da literatura, sempre sob verificação do autor; nenhum achado entra na base sem a fonte conferida.</p></section>
     <section class="coi"><h3>Conflitos de interesse do autor</h3>
     <p>O autor é palestrante da BeOne Medicines e prepara, a pedido da empresa, um dossiê de valor sobre o zanubrutinibe. Esse dossiê é um produto separado. Esta ferramenta não tem financiamento e não é usada como endosso naquele material. Por isso a revisão é cega e independente, e cada revisor declara os próprios vínculos.</p></section>
+    <section id="about-base"><h3>O que esta base é e não é</h3>
+    <p id="ab-niv"></p>
+    <p id="ab-fam"></p>
+    <p>A base se limita a LLC/LLPC e a quatro iBTK (ibrutinibe, acalabrutinibe, zanubrutinibe e pirtobrutinibe). Não cobre Waldenström nem linfoma do manto, nem custo, acesso ou incorporação. Os eventos adversos filtráveis são sete; outros, como hipertensão, artralgia, rash e segundas neoplasias, aparecem apenas dentro de achados mais amplos e podem entrar em versão futura. A distribuição de achados reflete a literatura disponível, não uma escolha de ênfase: há bem mais publicações sobre o ibrutinibe, o mais antigo, do que sobre o pirtobrutinibe.</p>
+    <p id="ab-fin"></p></section>
     <section><h3>Papel da revisão</h3>
     <p>A ferramenta não substitui o julgamento clínico. Discordâncias e ajustes são o resultado esperado, não um problema.</p></section>
     <p class="sig">Thiago Abranches · base de evidências de <span id="about-ver"></span></p>
@@ -369,7 +434,8 @@ function renderProgress(){
 /* ---------- ficha ---------- */
 function levelBadge(nv){const bars=[0,1,2,3,4,5,6].map(k=>el("b",{class:k>=nv&&nv<9?"on":""}));return el("span",{class:"lvl",title:"Hierarquia da evidência: 0 = bula, 6 = revisão narrativa"},el("i",{},bars.reverse()),D.niveis[String(nv)]||"Não classificado")}
 function select(id){S.sel=id;$("#desk").classList.add("showdetail");renderList();renderDetail();try{localStorage.setItem("rev-sel",id)}catch(e){}}
-function canDecide(){return !!(S.db&&S.uid&&S.perfilOk&&!S.owner)}
+function finalizada(){return !!(S.fin&&S.fin.finalizado_em)}
+function canDecide(){return !!(S.db&&S.uid&&S.perfilOk&&!S.owner&&!finalizada())}
 function renderDetail(){
   const box=$("#detail");
   if(S.db&&S.uid&&!S.owner&&S.perfilLido&&S.perfil===null){box.replaceChildren(onboardForm());return}
@@ -378,8 +444,8 @@ function renderDetail(){
   const mine=S.dec[i.id]||{};
   const sheet=el("article",{class:"sheet"},
     el("button",{class:"backbtn",text:"← Fila",onclick:()=>$("#desk").classList.remove("showdetail")}),
-    el("div",{class:"shead"},el("span",{class:"bigid",text:i.id}),el("span",{class:"pill p-pend",text:FAM[i.fam]}),levelBadge(i.nv),i.pend?el("span",{class:"pill p-flag",text:"Pendente de revisão"}):null),
-    i.pend?el("div",{class:"flagbox",text:"Este item é um cálculo do autor da ferramenta (comparação indireta pelo método de Bucher) e só perde a marca de pendente depois da revisão. Avalie a conta, a comparabilidade dos ensaios e a redação."}):null,
+    el("div",{class:"shead"},el("span",{class:"bigid",text:i.id}),el("span",{class:"pill p-pend",text:FAM[i.fam]}),levelBadge(i.nv),i.pend?[el("span",{class:"pill p-flag",text:"Cálculo do autor, não publicado"}),el("span",{class:"pill p-flag",text:"Pendente de revisão"})]:null),
+    i.pend?el("div",{class:"flagbox",text:"Este item não é evidência publicada: é um cálculo do próprio autor da ferramenta (comparação indireta ancorada, método de Bucher, com dados agregados de dois ensaios), sem revisão por pares. Ele só perde a marca de pendente depois da revisão de vocês e não deve ser citado como resultado de estudo. Avalie a conta, a comparabilidade dos ensaios e a redação."}):null,
     el("div",{},el("p",{class:"claim-label",text:"O que a ferramenta afirma"}),el("p",{class:"claim",text:i.txt})),
     el("dl",{class:"meta"},
       el("div",{},el("dt",{text:"Evento adverso"}),el("dd",{text:listaNomes(i.ev,D.eventos,nomeEv)})),
@@ -405,7 +471,7 @@ function decideBox(i,mine){
     el("div",{class:"dbtns"},btns),
     el("div",{class:"fields"},el("label",{for:"com"},"Comentário",com),el("label",{for:"sug"},"Texto sugerido (opcional)",sug)),
     el("div",{class:"dfoot"},
-      el("span",{class:"save",id:"save","data-s":"",text:dis?(S.owner?"Você entrou como autor: as decisões ficam com os revisores.":S.uid?"Preencha o cadastro para registrar decisões.":"Entre com seu e-mail e senha para registrar decisões."):(mine.atualizado?"Salvo":"Sem decisão ainda")}),
+      el("span",{class:"save",id:"save","data-s":"",text:dis?(S.owner?"Você entrou como autor: as decisões ficam com os revisores.":S.uid?(finalizada()?"Revisão finalizada: suas decisões estão travadas.":"Preencha o cadastro para registrar decisões."):"Entre com seu e-mail e senha para registrar decisões."):(mine.atualizado?"Salvo":"Sem decisão ainda")}),
       el("span",{class:"nav"},el("button",{text:"↑ Anterior",onclick:()=>step(-1),disabled:idx<=0}),el("button",{text:"Próximo ↓",onclick:()=>step(1)}))));
 }
 function step(d){const v=visible();const k=v.findIndex(x=>x.id===S.sel);const n=v[Math.min(v.length-1,Math.max(0,k+d))];if(n)select(n.id)}
@@ -445,8 +511,8 @@ async function flush(id){
 /* ---------- cadastro e declaração de vínculos ---------- */
 function onboardForm(){
   const p=S.perfil||{};const v=p.vinculos||{};
-  const nome=el("input",{type:"text",id:"o-nome",value:p.nome||"",autocomplete:"name"});
-  const crm=el("input",{type:"text",id:"o-crm",value:p.crm||"",placeholder:"Ex.: 123456/SP"});
+  const A=S.aut;const nome=el("input",{type:"text",id:"o-nome",value:A?A.nome:(p.nome||""),autocomplete:"name"});if(A)nome.readOnly=true;
+  const crm=el("input",{type:"text",id:"o-crm",value:A?A.crm:((p.crm&&p.crm!=="não informado")?p.crm:""),placeholder:"Opcional"});if(A)crm.readOnly=true;
   const inst=el("input",{type:"text",id:"o-inst",value:p.instituicao||""});
   const esp=el("input",{type:"text",id:"o-esp",value:p.especialidade||"Hematologia"});
   const vk=VINC.map(([k,l])=>{const c=el("input",{type:"checkbox",id:"v-"+k});c.checked=!!v[k];return el("label",{class:"ck",for:"v-"+k},c,l)});
@@ -454,21 +520,21 @@ function onboardForm(){
   const tipo=el("textarea",{id:"o-tipo",placeholder:"Ex.: palestrante, consultoria, pesquisa clínica, advisory board; período"});tipo.value=p.tipo_vinculo||"";
   const decl=el("input",{type:"checkbox",id:"o-decl"});decl.checked=!!p.declaracao;
   const go=el("button",{class:"primary",text:S.perfilOk?"Salvar alterações":"Começar a revisão"});
-  const check=()=>{go.disabled=!(nome.value.trim()&&crm.value.trim()&&decl.checked&&(nenhum.checked||VINC.some(([k])=>$("#v-"+k)?.checked)))};
+  const check=()=>{go.disabled=!(nome.value.trim()&&decl.checked&&(nenhum.checked||VINC.some(([k])=>$("#v-"+k)?.checked)))};
   [nome,crm,decl,nenhum].forEach(x=>x.addEventListener("input",check));
   setTimeout(()=>{VINC.forEach(([k])=>$("#v-"+k).addEventListener("change",()=>{if($("#v-"+k).checked)nenhum.checked=false;check()}));nenhum.addEventListener("change",()=>{if(nenhum.checked)VINC.forEach(([k])=>$("#v-"+k).checked=false);check()});check()},0);
   go.onclick=async()=>{
     go.disabled=true;go.textContent="Salvando…";
-    const body={nome:nome.value.trim(),crm:crm.value.trim(),instituicao:inst.value.trim(),especialidade:esp.value.trim(),
+    const body={nome:nome.value.trim(),crm:crm.value.trim()||"não informado",instituicao:inst.value.trim(),especialidade:esp.value.trim(),
       vinculos:Object.fromEntries(VINC.map(([k])=>[k,$("#v-"+k).checked])),sem_vinculos:nenhum.checked,tipo_vinculo:tipo.value.trim(),
       declaracao:true,atualizado:new Date().toISOString()};
-    try{await BK.salvarPerfil(body);S.perfil=body;S.perfilOk=true;renderAll()}
-    catch(e){go.disabled=false;go.textContent="Tentar de novo";$("#o-err").textContent="Não foi possível salvar o cadastro. Confira sua conexão e se você entrou com o e-mail convidado."}
+    try{await BK.salvarPerfil(body);S.perfil=body;S.perfilOk=true;await carregarFin();cabecalho();renderAll();if(!S.fin.tem_codigo)abrirCodigo()}
+    catch(e){go.disabled=false;go.textContent="Tentar de novo";$("#o-err").textContent=(S.aut?"Não foi possível salvar o cadastro. Confira sua conexão.":"Este e-mail não está na lista de revisores autorizados. Fale com o autor.")}
   };
   return el("div",{class:"onboard"},
     el("h2",{text:"Antes de começar: cadastro e declaração de vínculos"}),
     el("p",{text:"A ferramenta declara os vínculos do autor com fabricantes, e a mesma transparência vale para quem revisa. Ter vínculo não impede a revisão; ele só precisa ficar registrado. Seu nome e seus vínculos aparecem para o autor e, depois, na página de método da ferramenta."}),
-    el("div",{class:"grid2"},el("label",{for:"o-nome"},"Nome completo",nome),el("label",{for:"o-crm"},"CRM / UF",crm),el("label",{for:"o-inst"},"Instituição principal",inst),el("label",{for:"o-esp"},"Especialidade",esp)),
+    el("div",{class:"grid2"},el("label",{for:"o-nome"},"Nome (como prefere ser identificado)",nome),el("label",{for:"o-crm"},"CRM / UF (opcional)",crm),el("label",{for:"o-inst"},"Instituição principal",inst),el("label",{for:"o-esp"},"Especialidade",esp)),
     el("fieldset",{},el("legend",{text:"Vínculos com fabricantes de iBTK nos últimos 3 anos"}),vk,el("label",{class:"ck",for:"v-nenhum"},nenhum,"Nenhum vínculo com esses fabricantes"),
       el("label",{for:"o-tipo",style:"display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)"},"Tipo de vínculo",tipo)),
     el("label",{class:"ck",for:"o-decl"},decl,"Declaro que as informações acima são verdadeiras e que minha revisão é independente: avalio a fidelidade de cada achado à fonte, sem considerar o interesse de nenhum fabricante."),
@@ -490,10 +556,10 @@ function renderPanel(){
     return {i,ds,div,com:ds.some(x=>x.d.comentario||x.d.sugestao)}})
     .filter(r=>(!S.panelOnly.div||r.div)&&(!S.panelOnly.com||r.com));
   const tog=(k,l)=>{const b=el("button",{class:"chip","aria-pressed":S.panelOnly[k]?"true":"false",text:l});b.onclick=()=>{S.panelOnly[k]=!S.panelOnly[k];renderPanel()};return b};
-  const exp=el("button",{class:"chip",text:"Exportar decisões (CSV)"});exp.onclick=exportCsv;const hist=el("button",{class:"chip",text:"Exportar histórico (CSV)"});hist.onclick=exportHistorico;const upd=el("button",{class:"chip",text:"Atualizar"});upd.onclick=()=>carregarAutor().then(renderPanel);
+  const exp=el("button",{class:"chip",text:"Exportar decisões (CSV)"});exp.onclick=exportCsv;const hist=el("button",{class:"chip",text:"Exportar histórico (CSV)"});hist.onclick=exportHistorico;const pes=el("button",{class:"chip",text:"Exportar pesquisa (CSV)"});pes.onclick=exportPesquisa;const upd=el("button",{class:"chip",text:"Atualizar"});upd.onclick=()=>carregarAutor().then(renderPanel);
   box.replaceChildren(
     el("h2",{style:"margin:0;font-size:18px",text:"Revisores"}),el("div",{class:"revs"},revCards),
-    el("div",{class:"ptools"},el("h2",{style:"margin:0 12px 0 0;font-size:18px",text:"Decisões por achado"}),tog("div","Só com divergência ou ajuste"),tog("com","Só com comentário"),exp,hist,upd),
+    el("div",{class:"ptools"},el("h2",{style:"margin:0 12px 0 0;font-size:18px",text:"Decisões por achado"}),tog("div","Só com divergência ou ajuste"),tog("com","Só com comentário"),exp,hist,pes,upd),
     el("div",{class:"tablewrap"},el("table",{},el("thead",{},el("tr",{},el("th",{text:"Achado"}),el("th",{text:"Família"}),el("th",{text:"Decisões e comentários"}),el("th",{text:"Situação"}))),
       el("tbody",{},rows.length?rows.map(r=>el("tr",{},el("td",{class:"mono",text:r.i.id}),el("td",{text:FAM[r.i.fam]}),
         el("td",{},r.ds.length?r.ds.map(x=>el("div",{},el("span",{text:(S.revs[x.id]?.nome||"Revisor")+": "}),pill(x.d.decisao),x.d.comentario?el("div",{class:"c",text:x.d.comentario}):null,x.d.sugestao?el("div",{class:"c",text:"Sugestão: "+x.d.sugestao}):null)):el("span",{class:"c",text:"Sem avaliação"})),
@@ -510,6 +576,12 @@ function exportCsv(){
   for(const [rid,its] of Object.entries(S.revItems))for(const [iid,d] of Object.entries(its)){const it=D.items.find(x=>x.id===iid);const r=S.revs[rid]||{};
     lines.push([iid,FAM[it?.fam]||"",r.nome,r.crm,r.email,d.decisao?DEC[d.decisao]:"",d.comentario,d.sugestao,d.versao_base,d.atualizado].map(csvq).join(";"))}
   baixar("revisao_ibtk_decisoes_"+hoje()+".csv",lines)}
+async function exportPesquisa(){
+  try{const rows=await BK.lerTudo("pesquisas");const cols=PESQ.map(q=>q.k);
+    const lines=[["registrado_em","revisor",...cols,"comentario","versao_base"].join(";")];
+    for(const p of rows){const r=S.revs[p.user_id]||{};lines.push([p.criado,r.nome||p.email,...cols.map(c=>p.respostas?.[c]||""),p.comentario,p.versao_base].map(csvq).join(";"))}
+    baixar("revisao_ibtk_pesquisa_"+hoje()+".csv",lines)}
+  catch(e){showNotice("Não foi possível ler a pesquisa: "+(e.message||e))}}
 async function exportHistorico(){
   try{const rows=await BK.lerTudo("historico");
     const lines=[["registrado_em","achado","revisor","crm","decisao","comentario","sugestao","versao_base"].join(";")];
@@ -524,6 +596,16 @@ $("#tabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)r
 function renderAll(){renderFilters();renderList();renderProgress();renderDetail()}
 
 /* ---------- sobre ---------- */
+(function(){
+  const c=n=>D.items.filter(i=>i.nv===n).length,T=D.items.length;
+  const ens=c(1),ind=c(2),obs=c(3)+c(4),op=c(5),rev=c(6),bu=c(0);
+  const pc=n=>Math.round(100*n/T);
+  $("#ab-niv").textContent=`Dos ${T} achados, ${op} (${pc(op)}%) vêm de diretrizes, consensos ou opinião de especialistas; ${obs} de estudos observacionais ou de braço único; ${ens+ind} de ensaios randomizados ou comparações indiretas desses ensaios; ${bu} de bulas e documentos regulatórios; e ${rev} de revisões narrativas. Em outras palavras, boa parte do que orienta a conduta na intolerância aos iBTK ainda se apoia em consenso, e não em ensaio comparativo. O nível de cada achado aparece na tela; leia as afirmações com esse peso.`;
+  const tr=D.items.filter(i=>i.fam==="troca_ibtk").length,tc=D.items.filter(i=>i.fam==="troca_classe").length;
+  $("#ab-fam").textContent=`Os achados sobre troca de um iBTK por outro (${tr}) e por outra classe (${tc}) são minoria diante dos de manejo (dose e suporte); os dados de desfecho após a troca vêm em grande parte de estudos de braço único, sem comparador e financiados pelo fabricante do medicamento de destino; o restante é consenso e uma coorte retrospectiva. A origem de financiamento de cada fonte consta no próprio achado.`;
+  const p=D.items.filter(i=>i.pend);
+  $("#ab-fin").textContent=p.length?`${p.length===1?"Um achado ("+p[0].id+") é cálculo":p.length+" achados são cálculos"} do próprio autor, ainda não publicado${p.length===1?"":"s"}, e não conta${p.length===1?"":"m"} como evidência publicada até a revisão de vocês.`:"";
+})();
 $("#about-ver").textContent=D.versao.split("-").reverse().join("/");
 function showAbout(v){$("#about").hidden=!v;if(v){$("#about").scrollTop=0;$("#aboutok").focus({preventScroll:true})}}
 $("#aboutbtn").onclick=()=>showAbout(true);
@@ -548,8 +630,13 @@ const BK={
   async lerTudo(tabela,filtro){const out=[];for(let i=0;;i+=1000){let q=SB.from(tabela).select("*");if(filtro)q=q.eq(filtro[0],filtro[1]);
     const {data,error}=await q.range(i,i+999);if(error)throw error;out.push(...data);if(data.length<1000)return out}},
   async autor(){const {data,error}=await SB.rpc("is_autor");return !error&&data===true},
+  async fin(){const {data,error}=await SB.rpc("minha_finalizacao");if(error)throw error;return (data&&data[0])||{tem_codigo:false}},
+  async criarCodigo(c){const {error}=await SB.rpc("criar_codigo_finalizacao",{p_codigo:c});if(error)throw error},
+  async finalizar(c,total){const {data,error}=await SB.rpc("finalizar_revisao",{p_codigo:c,p_total_itens:total});if(error)throw error;return data},
+  async autorizado(){const {data,error}=await SB.rpc("meu_cadastro_autorizado");return (!error&&data&&data[0])||null},
   async perfil(){const {data,error}=await SB.from("perfis").select("*").eq("user_id",S.uid).maybeSingle();if(error)throw error;return data},
   async salvarPerfil(b){const {error}=await SB.from("perfis").upsert({...b,user_id:S.uid},{onConflict:"user_id"});if(error)throw error},
+  async enviarPesquisa(r,c){const {error}=await SB.from("pesquisas").insert({user_id:S.uid,respostas:r,comentario:c,versao_base:D.versao});if(error)throw error},
   async salvarDecisao(id,b){const {error}=await SB.from("decisoes").upsert({user_id:S.uid,item_id:id,decisao:b.decisao,comentario:b.comentario,sugestao:b.sugestao,versao_base:D.versao},{onConflict:"user_id,item_id"});if(error)throw error}
 };
 async function carregarAutor(){
@@ -559,7 +646,7 @@ async function carregarAutor(){
 }
 function cabecalho(){
   const on=!!S.uid;$("#loginbtn").hidden=on||!configurado();$("#logoutbtn").hidden=!on;$("#senhabtn").hidden=!on;
-  $("#whoami").textContent=on?S.email:"";$("#tabs").hidden=!S.owner;
+  $("#whoami").textContent=on?S.email:"";$("#tabs").hidden=!S.owner;$("#finbtn").hidden=!(on&&!S.owner&&S.perfilOk&&!finalizada());
 }
 function aviso(){
   const n=$("#notice");
@@ -580,7 +667,83 @@ function abrirLogin(modo){
 $("#l-pular").onclick=()=>{if($("#login").dataset.modo==="entrar")S.pulouLogin=true;$("#login").hidden=true};
 $("#loginbtn").onclick=()=>abrirLogin("entrar");
 $("#senhabtn").onclick=()=>abrirLogin("senha");
-$("#logoutbtn").onclick=async()=>{try{await SB.auth.signOut()}catch(e){};location.reload()};
+async function sair(){S.saindo=true;try{await SB.auth.signOut()}catch(e){};location.reload()}
+$("#logoutbtn").onclick=()=>{if(S.owner||S.pesquisaFeita)sair();else abrirPesquisa()};
+window.addEventListener("beforeunload",e=>{if(S.uid&&!S.owner&&!S.pesquisaFeita&&!S.saindo){e.preventDefault();e.returnValue=""}});
+
+/* ---------- boas-vindas e pesquisa de saída ---------- */
+const LIK=["Discordo muito","Discordo","Neutro","Concordo","Concordo muito"];
+const PESQ=[
+  {k:"ux_entrada",g:"Experiência de uso",t:"Entrar e fazer o cadastro foi simples.",o:LIK},
+  {k:"ux_achar",g:"Experiência de uso",t:"Foi fácil encontrar e filtrar os achados.",o:LIK},
+  {k:"ux_registrar",g:"Experiência de uso",t:"Registrar decisão e comentário foi rápido e claro.",o:LIK},
+  {k:"ux_tempo",g:"Experiência de uso",t:"Tempo médio que levei por achado:",o:["Menos de 1 min","1 a 3 min","3 a 5 min","Mais de 5 min"]},
+  {k:"ux_aparelho",g:"Experiência de uso",t:"Aparelho que usei:",o:["Computador","Celular","Tablet"]},
+  {k:"ct_fiel",g:"Conteúdo",t:"Os achados que li são fiéis às fontes citadas:",o:["Todos","A maioria","Alguns","Poucos","Não consegui avaliar"]},
+  {k:"ct_util",g:"Conteúdo",t:"Os achados são úteis para a prática clínica.",o:LIK},
+  {k:"ct_uso",g:"Conteúdo",t:"Eu usaria esta ferramenta na rotina:",o:["Sim","Talvez","Não"]}
+];
+let RP={};
+function abrirPesquisa(){
+  RP={};const ok=$("#p-ok"),upd=()=>{ok.disabled=!PESQ.every(q=>RP[q.k])};let g="";
+  $("#pesq-q").replaceChildren(...PESQ.flatMap(q=>{
+    const row=el("div",{class:"opts",role:"radiogroup","aria-label":q.t});
+    q.o.forEach(o=>{const b=el("button",{type:"button",class:"chip","aria-pressed":"false",text:o});
+      b.onclick=()=>{RP[q.k]=o;[...row.children].forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));upd()};row.append(b)});
+    const h=q.g!==g?[el("p",{class:"pg",text:q.g})]:[];g=q.g;
+    return [...h,el("div",{class:"q"},el("p",{class:"qt",text:q.t}),row)]}));
+  $("#p-com").value="";$("#p-err").textContent="";ok.disabled=true;$("#pesq").hidden=false;$("#pesq").scrollTop=0;
+}
+$("#p-volta").onclick=()=>{$("#pesq").hidden=true};
+$("#p-pula").onclick=()=>sair();
+$("#pesqform").addEventListener("submit",async e=>{
+  e.preventDefault();const ok=$("#p-ok"),err=$("#p-err");ok.disabled=true;err.textContent="";
+  try{await BK.enviarPesquisa(RP,$("#p-com").value.trim().slice(0,1500));S.pesquisaFeita=true;await sair()}
+  catch(x){err.textContent="Não foi possível enviar agora. Tente de novo, ou use “Sair sem responder”.";ok.disabled=false}
+});
+
+/* ---------- finalização da revisão (código próprio, definitivo) ---------- */
+async function carregarFin(){S.fin={tem_codigo:false};if(S.owner||!S.perfilOk)return;try{S.fin=await BK.fin()}catch(e){S.fin={tem_codigo:false,erro:true}}}
+const quandoBR=iso=>new Date(iso).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",dateStyle:"long",timeStyle:"medium"});
+function abrirCodigo(){
+  if(S.fin&&S.fin.tem_codigo)return;
+  $("#c-cod").value="";$("#c-cod2").value="";$("#c-ok").checked=false;$("#c-err").textContent="";$("#c-go").disabled=true;$("#cod").hidden=false;$("#cod").scrollTop=0;
+}
+const chkCod=()=>{$("#c-go").disabled=!($("#c-cod").value.length>=8&&$("#c-cod").value===$("#c-cod2").value&&$("#c-ok").checked)};
+["#c-cod","#c-cod2","#c-ok"].forEach(s=>$(s).addEventListener("input",chkCod));
+$("#c-depois").onclick=()=>{$("#cod").hidden=true};
+$("#codform").addEventListener("submit",async e=>{
+  e.preventDefault();const go=$("#c-go"),err=$("#c-err");go.disabled=true;err.textContent="";
+  if($("#c-cod").value!==$("#c-cod2").value){err.textContent="Os dois códigos não são iguais.";return}
+  try{await BK.criarCodigo($("#c-cod").value);S.fin={tem_codigo:true};$("#cod").hidden=true;showNotice("Código de finalização criado. Guarde-o: ele só será pedido quando você terminar de avaliar.");setTimeout(aviso,6000)}
+  catch(x){err.textContent="Não foi possível criar o código: "+(x.message||x);go.disabled=false}
+});
+function abrirFinal(){
+  if(!S.fin||!S.fin.tem_codigo){abrirCodigo();return}
+  const av=Object.values(S.dec).filter(d=>d.decisao).length,tot=D.items.length;
+  $("#fin-res").textContent="Você avaliou "+av+" de "+tot+" achados"+(av<tot?" ("+(tot-av)+" sem decisão).":".");
+  $("#fin-corpo").hidden=false;$("#fin-feito").hidden=true;$("#f-cod").value="";$("#f-ok").checked=false;$("#f-err").textContent="";$("#f-go").disabled=true;$("#fin").hidden=false;$("#fin").scrollTop=0;
+}
+const chkFin=()=>{$("#f-go").disabled=!($("#f-cod").value.length>=1&&$("#f-ok").checked)};
+["#f-cod","#f-ok"].forEach(s=>$(s).addEventListener("input",chkFin));
+$("#finbtn").onclick=abrirFinal;
+$("#f-volta").onclick=()=>{$("#fin").hidden=true};
+$("#f-fecha").onclick=()=>{$("#fin").hidden=true};
+$("#finform").addEventListener("submit",async e=>{
+  e.preventDefault();const go=$("#f-go"),err=$("#f-err");go.disabled=true;err.textContent="";
+  let r;try{r=await BK.finalizar($("#f-cod").value,D.items.length)}catch(x){err.textContent="Não foi possível finalizar agora: "+(x.message||x);go.disabled=false;return}
+  if(r&&r.ok){S.fin={tem_codigo:true,finalizado_em:r.finalizado_em,resumo:r.resumo,hash_decisoes:r.hash_decisoes};
+    $("#fin-quando").textContent="Revisão finalizada em "+quandoBR(r.finalizado_em)+" (horário de Brasília).";
+    $("#fin-corpo").hidden=true;$("#fin-feito").hidden=false;cabecalho();renderAll();return}
+  const m=r&&r.motivo;
+  err.textContent=m==="codigo_incorreto"?"Código incorreto. Tentativas restantes: "+r.restantes+".":m==="bloqueado"?"Código bloqueado por tentativas erradas. Fale com o autor.":m==="ja_finalizada"?"Esta revisão já foi finalizada.":m==="sem_codigo"?"Você ainda não criou o código de finalização.":"Não foi possível finalizar.";
+  go.disabled=false;
+});
+function boasVindas(){
+  let visto=false;try{visto=sessionStorage.getItem("rev-bv")==="1"}catch(e){}
+  if(visto)return;$("#bv").hidden=false;$("#bv-ok").focus({preventScroll:true});
+}
+$("#bvform").addEventListener("submit",e=>{e.preventDefault();$("#bv").hidden=true;try{sessionStorage.setItem("rev-bv","1")}catch(x){}});
 $("#loginform").addEventListener("submit",async e=>{
   e.preventDefault();const ok=$("#l-ok"),err=$("#l-err"),senha=$("#l-senha").value;
   if(senha.length<8){err.textContent="A senha tem pelo menos 8 caracteres.";return}
@@ -596,12 +759,14 @@ $("#loginform").addEventListener("submit",async e=>{
 async function iniciarSessao(u){
   S.uid=u.id;S.email=u.email||"";S.db=BK;
   try{
-    S.owner=await BK.autor();
+    S.owner=await BK.autor();S.aut=S.owner?null:await BK.autorizado();
     S.perfil=await BK.perfil();S.perfilOk=!!(S.perfil&&S.perfil.declaracao);S.perfilLido=true;
     for(const d of await BK.lerTudo("decisoes",["user_id",S.uid]))S.dec[d.item_id]={decisao:d.decisao,comentario:d.comentario,sugestao:d.sugestao,atualizado:d.atualizado};
     if(S.owner)await carregarAutor();
+    await carregarFin();
   }catch(e){showNotice("Entrou, mas não foi possível ler seus dados: "+(e.message||e));cabecalho();renderAll();return}
   cabecalho();aviso();coverLabel();renderAll();
+  if(!S.owner){boasVindas();if(S.perfilOk&&S.fin&&!S.fin.tem_codigo)abrirCodigo()}
 }
 (async()=>{
   cabecalho();aviso();

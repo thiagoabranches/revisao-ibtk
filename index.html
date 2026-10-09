@@ -233,6 +233,23 @@ td .c{color:var(--muted);font-size:12px;margin-top:3px;max-width:52ch}
 .login .onboard{margin:auto;width:100%}
 #onb{flex-direction:column}
 #onb .sairlink{align-self:center;margin:0 auto 8px}
+
+/* painel estatístico */
+.dash{display:flex;flex-direction:column;gap:16px}
+.dash h2{margin:0;font-size:18px}.dash h3{margin:0;font-size:14px}.dash .sub{margin:0;color:var(--muted);font-size:12px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.kpi b{font-family:var(--f-mono);font-weight:500;font-size:22px}.kpi span{font-size:11.5px;color:var(--muted)}
+.dcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.sbar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--soft);gap:2px}.sbar i{display:block;min-width:0}
+.leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:var(--muted)}.leg span{white-space:nowrap}.leg em{font-style:normal;color:var(--ink);font-family:var(--f-mono)}
+.sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.dtab{width:100%;border-collapse:collapse;font-size:12.5px}.dtab th,.dtab td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.dtab th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.dtab td.n{font-family:var(--f-mono);text-align:right}
+.flagok{color:var(--ok);font-weight:600}.flagpend{color:var(--warn);font-weight:600}
+.dtools{display:flex;gap:8px;flex-wrap:wrap}
+@media print{header.top,#desk,.tabs,.dtools,.ptools,#notice,.cover,.login{display:none!important}#panel{display:block!important}body{background:#fff}.dcard,.kpi,.tablewrap{break-inside:avoid}}
 /* demonstração guiada */
 .demobox{max-width:640px;width:100%;margin:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:12px}
 .demobox h2{margin:0;font-family:var(--f-read);font-weight:500;font-size:22px}
@@ -666,6 +683,7 @@ function renderPanel(){
   const tog=(k,l)=>{const b=el("button",{class:"chip","aria-pressed":S.panelOnly[k]?"true":"false",text:l});b.onclick=()=>{S.panelOnly[k]=!S.panelOnly[k];renderPanel()};return b};
   const exp=el("button",{class:"chip",text:"Exportar decisões (CSV)"});exp.onclick=exportCsv;const hist=el("button",{class:"chip",text:"Exportar histórico (CSV)"});hist.onclick=exportHistorico;const pes=el("button",{class:"chip",text:"Exportar pesquisa (CSV)"});pes.onclick=exportPesquisa;const upd=el("button",{class:"chip",text:"Atualizar"});upd.onclick=()=>carregarAutor().then(renderPanel);
   box.replaceChildren(
+    painelEstatistico(),
     el("h2",{style:"margin:0;font-size:18px",text:"Revisores"}),el("div",{class:"revs"},revCards),
     el("div",{class:"ptools"},el("h2",{style:"margin:0 12px 0 0;font-size:18px",text:"Decisões por achado"}),tog("div","Só com divergência ou ajuste"),tog("com","Só com comentário"),exp,hist,pes,upd),
     el("div",{class:"tablewrap"},el("table",{},el("thead",{},el("tr",{},el("th",{text:"Achado"}),el("th",{text:"Família"}),el("th",{text:"Decisões e comentários"}),el("th",{text:"Situação"}))),
@@ -673,6 +691,82 @@ function renderPanel(){
         el("td",{},r.ds.length?r.ds.map(x=>el("div",{},el("span",{text:(S.revs[x.id]?.nome||"Revisor")+": "}),pill(x.d.decisao),x.d.comentario?el("div",{class:"c",text:x.d.comentario}):null,x.d.sugestao?el("div",{class:"c",text:"Sugestão: "+x.d.sugestao}):null)):el("span",{class:"c",text:"Sem avaliação"})),
         el("td",{},r.div?el("span",{class:"div",text:"Revisar"}):(r.ds.length?el("span",{text:"Concordância"}):el("span",{class:"c",text:"—"}))))):el("tr",{},el("td",{colspan:"4",class:"c",text:"Nada com esses filtros."}))))));
 }
+
+/* ---------- painel estatístico do autor ---------- */
+const DCOR={concordo:"var(--ok)",ajuste:"var(--warn)",discordo:"var(--bad)",fora:"var(--na)",pend:"var(--line)"};
+const fmtDH=t=>t?new Date(t).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"—";
+const pct=(a,b)=>b?Math.round(1000*a/b)/10+"%":"—";
+function statsRev(id){
+  const it=S.revItems[id]||{},N=D.items.length,c={concordo:0,ajuste:0,discordo:0,fora:0};
+  let com=0,sug=0,comDec={ajuste:0,discordo:0},ts=[],dias=new Set();
+  for(const [iid,d] of Object.entries(it)){
+    if(d.decisao){c[d.decisao]++;if(d.decisao in comDec&&(d.comentario||"").trim())comDec[d.decisao]++}
+    if((d.comentario||"").trim())com++;if((d.sugestao||"").trim())sug++;
+    if(d.atualizado){ts.push(+new Date(d.atualizado));dias.add(new Date(d.atualizado).toLocaleDateString("sv-SE",{timeZone:"America/Sao_Paulo"}))}}
+  const av=c.concordo+c.ajuste+c.discordo+c.fora;
+  return {id,r:S.revs[id]||{},c,av,pend:N-av,com,sug,comDec,primeiro:ts.length?Math.min(...ts):null,ultimo:ts.length?Math.max(...ts):null,dias:dias.size,fin:(S.fins||{})[id]||null};
+}
+function sbar(c,total,chave){
+  const keys=chave||DKEYS;const b=el("div",{class:"sbar",role:"img","aria-label":keys.map(k=>(DEC[k]||"Pendentes")+": "+(c[k]||0)).join("; ")});
+  for(const k of keys){const i=el("i");i.style.width=total?(100*(c[k]||0)/total)+"%":"0";i.style.background=DCOR[k];i.title=(DEC[k]||"Pendentes")+": "+(c[k]||0);b.append(i)}
+  const leg=el("div",{class:"leg"},...keys.map(k=>{const sw=el("i",{class:"sw"});sw.style.background=DCOR[k];return el("span",{},sw,(DEC[k]||"Pendentes")+" ",el("em",{text:(c[k]||0)+" ("+pct(c[k]||0,total)+")"}))}));
+  return el("div",{style:"display:flex;flex-direction:column;gap:6px"},b,leg)}
+function kappa(a,b){
+  const ia=S.revItems[a]||{},ib=S.revItems[b]||{};let n=0,ac=0;const pa={},pb={};
+  for(const i of D.items){const x=ia[i.id]?.decisao,y=ib[i.id]?.decisao;if(!x||!y)continue;n++;if(x===y)ac++;pa[x]=(pa[x]||0)+1;pb[y]=(pb[y]||0)+1}
+  if(!n)return {n:0};const po=ac/n;let pe=0;for(const k of DKEYS)pe+=((pa[k]||0)/n)*((pb[k]||0)/n);
+  return {n,po,k:pe>=1?null:(po-pe)/(1-pe)}}
+function painelEstatistico(){
+  const ids=Object.keys(S.revs),N=D.items.length,R=ids.map(statsRev);
+  const raiz=el("section",{class:"dash","aria-label":"Acompanhamento dos revisores"});
+  raiz.append(el("div",{class:"ptools"},el("h2",{text:"Acompanhamento dos revisores"}),
+    (()=>{const b=el("button",{class:"chip",type:"button",text:"Imprimir / salvar relatório em PDF"});b.onclick=()=>window.print();return b})(),
+    (()=>{const b=el("button",{class:"chip",type:"button",text:"Exportar resumo por revisor (CSV)"});b.onclick=exportResumo;return b})()));
+  raiz.append(el("p",{class:"sub",text:"Base "+D.versao+" · "+N+" achados · gerado em "+fmtDH(Date.now())}));
+  if(!R.length){raiz.append(el("div",{class:"empty",text:"Nenhum revisor cadastrado ainda."}));return raiz}
+  const tot={concordo:0,ajuste:0,discordo:0,fora:0};let totAv=0,totCom=0,totFin=0;
+  for(const x of R){for(const k of DKEYS)tot[k]+=x.c[k];totAv+=x.av;totCom+=x.com;if(x.fin&&x.fin.finalizado_em)totFin++}
+  const kp=(v,l)=>el("div",{class:"kpi"},el("b",{text:String(v)}),el("span",{text:l}));
+  raiz.append(el("div",{class:"kpis"},kp(R.length,"revisores cadastrados"),kp(totFin+" de "+R.length,"finalizaram"),kp(pct(totAv,N*R.length),"avaliado (todos)"),kp(totCom,"achados com comentário"),kp(pct(tot.concordo+tot.ajuste+tot.discordo+tot.fora?tot.concordo:0,totAv),"concordo (do avaliado)")));
+  // por revisor
+  raiz.append(el("div",{class:"dgrid"},...R.map(x=>{
+    const c={...x.c,pend:x.pend};
+    const fin=x.fin&&x.fin.finalizado_em;
+    return el("div",{class:"dcard"},
+      el("h3",{text:(x.r.nome||"Revisor sem nome")}),
+      el("p",{class:"sub",text:(x.r.crm||"")+(x.r.email?" · "+x.r.email:"")}),
+      sbar(c,N,[...DKEYS,"pend"]),
+      el("p",{class:"sub",text:x.av+" de "+N+" avaliados ("+pct(x.av,N)+") · "+x.com+" com comentário · "+x.sug+" com sugestão de redação"}),
+      el("p",{class:"sub",text:"Comentou em "+pct(x.comDec.ajuste,x.c.ajuste)+" dos “ajuste” e "+pct(x.comDec.discordo,x.c.discordo)+" dos “discordo”"}),
+      el("p",{class:"sub",text:"Atividade: "+(x.primeiro?fmtDH(x.primeiro)+" a "+fmtDH(x.ultimo)+" · "+x.dias+" dia(s) com registro":"ainda sem registros")}),
+      el("p",{class:"sub"},fin?el("span",{class:"flagok",text:"Finalizada em "+fmtDH(fin)}):el("span",{class:"flagpend",text:"Não finalizada"}),fin&&x.fin.hash_decisoes?el("span",{text:" · hash "+x.fin.hash_decisoes.slice(0,12)+"…"}):null,fin&&x.fin.email_enviado_em?el("span",{text:" · e-mail enviado "+fmtDH(x.fin.email_enviado_em)}):null))})));
+  if(S.finsErro)raiz.append(el("p",{class:"sub",text:"Finalizações indisponíveis: rode supabase_painel.sql no Supabase."}));
+  // por tipo de avaliação, família e nível
+  const grupo=(titulo,keyFn,rotulo)=>{
+    const g={};for(const x of R){const it=S.revItems[x.id]||{};for(const i of D.items){const d=it[i.id]?.decisao;if(!d)continue;const k=keyFn(i);(g[k]||={concordo:0,ajuste:0,discordo:0,fora:0,t:0});g[k][d]++;g[k].t++}}
+    const rows=Object.keys(g).sort().map(k=>el("tr",{},el("td",{text:rotulo(k)}),el("td",{class:"n",text:String(g[k].t)}),el("td",{},sbar(g[k],g[k].t))));
+    return el("div",{class:"dcard"},el("h3",{text:titulo}),rows.length?el("div",{class:"tablewrap"},el("table",{class:"dtab"},el("thead",{},el("tr",{},el("th",{text:"Grupo"}),el("th",{text:"Decisões"}),el("th",{text:"Distribuição"}))),el("tbody",{},rows))):el("p",{class:"sub",text:"Sem decisões ainda."}))};
+  raiz.append(grupo("Decisões por família de achado",i=>i.fam,k=>FAM[k]||k),grupo("Decisões por nível de evidência",i=>String(i.nv),k=>D.niveis[k]||"Não classificado"));
+  // concordância entre revisores
+  if(R.length>=2){
+    const linhas=[];for(let a=0;a<R.length;a++)for(let b=a+1;b<R.length;b++){const k=kappa(R[a].id,R[b].id);
+      linhas.push(el("tr",{},el("td",{text:(R[a].r.nome||"?")+" × "+(R[b].r.nome||"?")}),el("td",{class:"n",text:String(k.n)}),el("td",{class:"n",text:k.n?pct(k.po*100,100):"—"}),el("td",{class:"n",text:k.n&&k.k!=null?k.k.toFixed(2).replace(".",","):"—"})))}
+    raiz.append(el("div",{class:"dcard"},el("h3",{text:"Concordância entre revisores"}),
+      el("p",{class:"sub",text:"Considera só os achados avaliados pelos dois. O kappa de Cohen corrige a concordância pelo acaso; com poucos achados em comum, não o interprete."}),
+      el("div",{class:"tablewrap"},el("table",{class:"dtab"},el("thead",{},el("tr",{},el("th",{text:"Par"}),el("th",{text:"Achados em comum"}),el("th",{text:"Concordância bruta"}),el("th",{text:"Kappa"}))),el("tbody",{},linhas)))))}
+  // pontos de atenção
+  const att=D.items.map(i=>{const ds=R.map(x=>({n:x.r.nome||"?",d:S.revItems[x.id]?.[i.id]})).filter(y=>y.d&&y.d.decisao);return {i,ds,disc:ds.filter(y=>y.d.decisao==="discordo").length,aj:ds.filter(y=>y.d.decisao==="ajuste").length}})
+    .filter(r=>r.disc||r.aj).sort((a,b)=>(b.disc-a.disc)||(b.aj-a.aj)).slice(0,12);
+  raiz.append(el("div",{class:"dcard"},el("h3",{text:"Pontos de atenção: achados com discordância ou pedido de ajuste"}),
+    att.length?el("div",{class:"tablewrap"},el("table",{class:"dtab"},el("thead",{},el("tr",{},el("th",{text:"Achado"}),el("th",{text:"Afirmação"}),el("th",{text:"Decisões"}))),
+      el("tbody",{},att.map(r=>el("tr",{},el("td",{class:"mono",text:r.i.id}),el("td",{text:r.i.txt.length>110?r.i.txt.slice(0,110)+"…":r.i.txt}),el("td",{},r.ds.map(y=>el("div",{},y.n+": ",pill(y.d.decisao))))))))):el("p",{class:"sub",text:"Nenhum achado com discordância ou ajuste até agora."})));
+  return raiz;
+}
+function exportResumo(){
+  const N=D.items.length;const L=["revisor,crm,email,avaliados,concordo,ajuste,discordo,fora,pendentes,com_comentario,com_sugestao,primeiro_registro,ultimo_registro,dias_com_registro,finalizado_em,hash_decisoes"];
+  for(const id of Object.keys(S.revs)){const x=statsRev(id);
+    L.push([x.r.nome,x.r.crm,x.r.email,x.av,x.c.concordo,x.c.ajuste,x.c.discordo,x.c.fora,N-x.av,x.com,x.sug,x.primeiro?new Date(x.primeiro).toISOString():"",x.ultimo?new Date(x.ultimo).toISOString():"",x.dias,x.fin?x.fin.finalizado_em:"",x.fin?x.fin.hash_decisoes:""].map(csvq).join(","))}
+  baixar("resumo_revisores_"+hoje()+".csv",L)}
 function baixar(nome,linhas){
   const blob=new Blob(["﻿"+linhas.join("\n")],{type:"text/csv;charset=utf-8"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nome;document.body.append(a);a.click();
@@ -741,6 +835,7 @@ const BK={
   async fin(){const {data,error}=await SB.rpc("minha_finalizacao");if(error)throw error;return (data&&data[0])||{tem_codigo:false}},
   async criarCodigo(c){const {error}=await SB.rpc("criar_codigo_finalizacao",{p_codigo:c});if(error)throw error},
   async finalizar(c,total){const {data,error}=await SB.rpc("finalizar_revisao",{p_codigo:c,p_total_itens:total});if(error)throw error;return data},
+  async finsAutor(){const {data,error}=await SB.rpc("autor_finalizacoes");if(error)throw error;return data||[]},
   async autorizado(){const {data,error}=await SB.rpc("meu_cadastro_autorizado");return (!error&&data&&data[0])||null},
   async perfil(){const {data,error}=await SB.from("perfis").select("*").eq("user_id",S.uid).maybeSingle();if(error)throw error;return data},
   async salvarPerfil(b){const {error}=await SB.from("perfis").upsert({...b,user_id:S.uid},{onConflict:"user_id"});if(error)throw error},
@@ -751,6 +846,7 @@ async function carregarAutor(){
   const [ps,ds]=await Promise.all([BK.lerTudo("perfis"),BK.lerTudo("decisoes")]);
   S.revs={};S.revItems={};for(const p of ps)S.revs[p.user_id]=p;
   for(const d of ds)(S.revItems[d.user_id]||={})[d.item_id]=d;
+  S.fins={};try{for(const f of await BK.finsAutor())S.fins[f.user_id]=f}catch(e){S.finsErro=true}
 }
 function cabecalho(){
   const on=!!S.uid;$("#loginbtn").hidden=on||!configurado();$("#logoutbtn").hidden=!on;$("#senhabtn").hidden=!on;

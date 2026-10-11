@@ -25,16 +25,17 @@ Deno.serve(async (req) => {
   // Só quando a finalização acabou de acontecer e os e-mails ainda não saíram.
   if (!record?.finalizado_em || old_record?.finalizado_em || record.email_enviado_em) return new Response("ignorado");
 
+  const triagem = record.tipo === "triagem";
   const quando = fmt(record.finalizado_em);
   const hash = record.hash_decisoes;
   const rs = record.resumo ?? {};
 
   await enviar(
     record.email,
-    "Revisão iBTK: sua finalização foi registrada",
-    `Olá, ${record.nome}.\n\nObrigado pela sua colaboração na revisão da ferramenta de consulta sobre inibidores de BTK.\n\n` +
-      `Sua revisão foi finalizada em:\n${quando}\n\n` +
-      `Achados avaliados: ${rs.avaliados ?? "-"}` + (rs.sem_decisao != null ? ` · sem decisão: ${rs.sem_decisao}` : "") + `\n` +
+    triagem ? "Triagem iBTK: sua finalização foi registrada" : "Revisão iBTK: sua finalização foi registrada",
+    `Olá, ${record.nome}.\n\nObrigado pela sua colaboração na ${triagem ? "conferência da triagem" : "revisão"} da ferramenta de consulta sobre inibidores de BTK.\n\n` +
+      `Sua ${triagem ? "triagem" : "revisão"} foi finalizada em:\n${quando}\n\n` +
+      `${triagem ? "Artigos triados" : "Achados avaliados"}: ${rs.avaliados ?? "-"}` + (rs.sem_decisao != null ? ` · sem decisão: ${rs.sem_decisao}` : "") + `\n` +
       `Impressão digital (SHA-256) das suas decisões:\n${hash}\n\n` +
       `A finalização é definitiva: suas decisões foram travadas nesse momento e ninguém, nem o autor, pode alterá-las. ` +
       `Guarde este e-mail: a data e a hora dele comprovam que o registro foi feito por você, sem intervenção do autor.\n\n` +
@@ -42,8 +43,8 @@ Deno.serve(async (req) => {
   );
   await enviar(
     Deno.env.get("AUTOR_EMAIL")!,
-    "Revisão iBTK: um revisor finalizou",
-    `${record.nome} finalizou a revisão em ${quando}.\n\nImpressão digital das decisões:\n${hash}`,
+    triagem ? "Triagem iBTK: um(a) triador(a) finalizou" : "Revisão iBTK: um revisor finalizou",
+    `${record.nome} finalizou a ${triagem ? "triagem" : "revisão"} em ${quando}.\n\nImpressão digital das decisões:\n${hash}`,
   );
 
   const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);

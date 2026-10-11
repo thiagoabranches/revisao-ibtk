@@ -1,4 +1,6 @@
-# Revisão iBTK
+# Morpheus · Revisão iBTK
+
+Nomes do projeto: **Oneiros** (ferramenta de consulta), **Morpheus** (revisão cega dos achados, esta página), **Ikelos** (conferência independente da triagem, `triagem.html`) e **Phantasos** (revisão sistemática com metanálise).
 
 Página de revisão cega dos achados da ferramenta de apoio à decisão sobre intolerância aos inibidores de BTK.
 Hospedada no GitHub Pages; cadastros e decisões dos revisores ficam no Supabase, **nunca neste repositório**.

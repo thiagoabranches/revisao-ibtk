@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
 
   await enviar(
     record.email,
-    triagem ? "Triagem iBTK: sua finalização foi registrada" : "Revisão iBTK: sua finalização foi registrada",
+    triagem ? "Ikelos · Triagem iBTK: sua finalização foi registrada" : "Morpheus · Revisão iBTK: sua finalização foi registrada",
     `Olá, ${record.nome}.\n\nObrigado pela sua colaboração na ${triagem ? "conferência da triagem" : "revisão"} da ferramenta de consulta sobre inibidores de BTK.\n\n` +
       `Sua ${triagem ? "triagem" : "revisão"} foi finalizada em:\n${quando}\n\n` +
       `${triagem ? "Artigos triados" : "Achados avaliados"}: ${rs.avaliados ?? "-"}` + (rs.sem_decisao != null ? ` · sem decisão: ${rs.sem_decisao}` : "") + `\n` +
@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
   );
   await enviar(
     Deno.env.get("AUTOR_EMAIL")!,
-    triagem ? "Triagem iBTK: um(a) triador(a) finalizou" : "Revisão iBTK: um revisor finalizou",
+    triagem ? "Ikelos · Triagem iBTK: um(a) triador(a) finalizou" : "Morpheus · Revisão iBTK: um revisor finalizou",
     `${record.nome} finalizou a ${triagem ? "triagem" : "revisão"} em ${quando}.\n\nImpressão digital das decisões:\n${hash}`,
   );
 

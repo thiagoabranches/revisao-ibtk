@@ -94,3 +94,16 @@ A gravação da finalização dispara dois e-mails: ao revisor (agradecimento, d
    `supabase secrets set RESEND_API_KEY=... EMAIL_REMETENTE="Revisão iBTK <revisao@seudominio.com.br>" AUTOR_EMAIL=seu@email WEBHOOK_SECRET=uma-frase-longa`
 4. No painel, em Database > Webhooks > Create: tabela `finalizacoes`, evento **Update**, tipo **Supabase Edge Functions** (ou HTTP Request para a URL da função), com o cabeçalho `x-webhook-secret` igual ao `WEBHOOK_SECRET`.
 5. Teste com um revisor de teste antes de convidar os reais.
+
+## Módulo do triador (conferência independente da triagem)
+
+Página à parte, `triagem.html`, no mesmo projeto Supabase e com o mesmo login. Serve para um segundo triador conferir uma amostra da triagem da base (Incluir, Excluir ou Dúvida), sem ver a decisão do autor.
+
+1. No SQL Editor, rode `supabase_triagem.sql` (depois de `supabase.sql` e `supabase_finalizacao.sql`).
+2. Cadastre o triador (nome e CRF conferidos por você) e crie o usuário em **Authentication > Users**:
+   `insert into public.triadores_autorizados (email, nome, crf) values ('triador@exemplo.com', 'Nome Completo', 'CRF-SP 00000');`
+3. Rode `supabase_triagem_amostra.sql`: carrega os 33 artigos e o seu gabarito. **Esse arquivo não vai para o GitHub** (o repositório é público; ele está no `.gitignore`).
+4. Envie ao triador o link `.../triagem.html`, o e-mail e a senha provisória. Ele troca a senha, declara vínculos, cria o código de finalização e triam os artigos.
+5. Você abre `.../triagem.html` com o seu login e vê concordância, kappa e divergências por triador, com exportação em CSV.
+
+Garantias no banco: o gabarito só é lido pelo autor; o triador lê só as próprias decisões; a finalização trava as decisões e gera hash e e-mail, como na revisão dos achados. A função de e-mail já trata `tipo = 'triagem'`; para o texto novo valer, publique de novo `notificar-finalizacao`.

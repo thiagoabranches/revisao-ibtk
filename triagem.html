@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Triagem iBTK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#f3f4f7; --panel:#ffffff; --ink:#1b2133; --muted:#5d6479; --line:#dfe2ea; --soft:#eceef4;
+  --accent:#2f4fa8; --accent-ink:#ffffff; --accent-soft:#e3e9f8;
+  --ok:#1e7a4f; --ok-soft:#dff2e8; --warn:#9a6200; --warn-soft:#fbefd6; --bad:#b3261e; --bad-soft:#fbe2df;
+  --f-ui:"Libre Franklin",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-read:"Newsreader",Georgia,"Times New Roman",serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --r:8px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12151e; --panel:#1a1e2b; --ink:#e7e9f1; --muted:#9aa1b6; --line:#2c3243; --soft:#222838;
+  --accent:#8ea8f2; --accent-ink:#0f1424; --accent-soft:#26315a;
+  --ok:#6fd3a0; --ok-soft:#163a2a; --warn:#f0bd5c; --warn-soft:#3b2d10; --bad:#f2918a; --bad-soft:#47201d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12151e; --panel:#1a1e2b; --ink:#e7e9f1; --muted:#9aa1b6; --line:#2c3243; --soft:#222838;
+  --accent:#8ea8f2; --accent-ink:#0f1424; --accent-soft:#26315a;
+  --ok:#6fd3a0; --ok-soft:#163a2a; --warn:#f0bd5c; --warn-soft:#3b2d10; --bad:#f2918a; --bad-soft:#47201d; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--f-ui);display:flex;flex-direction:column}
+[hidden]{display:none!important}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.top h1{margin:0;font-size:17px;font-weight:700;letter-spacing:-.01em}
+.top .sub{color:var(--muted);font-size:12px}
+.top .sp{flex:1}
+.prog{display:flex;align-items:center;gap:8px;min-width:160px}
+.prog .bar{flex:1;height:8px;background:var(--soft);border-radius:99px;overflow:hidden;min-width:80px}
+.prog .bar i{display:block;height:100%;background:var(--accent);width:0}
+.btn{display:inline-block;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--panel);border-radius:var(--r);padding:6px 12px;font-size:13px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.notice{padding:8px 16px;background:var(--warn-soft);font-size:13px;border-bottom:1px solid var(--line)}
+.notice.ok{background:var(--ok-soft)}
+main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(260px,340px) 1fr;gap:0}
+.col{overflow:auto;min-height:0}
+.queue{border-right:1px solid var(--line);background:var(--panel)}
+.item{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:10px 14px}
+.item[aria-current="true"]{background:var(--accent-soft)}
+.item .n{font-family:var(--f-mono);color:var(--muted);min-width:24px}
+.item .t{flex:1;font-size:13px;line-height:1.35}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap}
+.p-Incluir{background:var(--ok-soft);color:var(--ok)}
+.p-Excluir{background:var(--bad-soft);color:var(--bad)}
+.p-Dúvida{background:var(--warn-soft);color:var(--warn)}
+.p-pend{background:var(--soft);color:var(--muted)}
+.detail{padding:20px clamp(16px,3vw,36px) 40px;display:flex;flex-direction:column;gap:16px;max-width:900px}
+.detail h2{margin:0;font-family:var(--f-read);font-weight:500;font-size:24px;line-height:1.25}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.card h3{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.card p{margin:4px 0}
+.opts{display:flex;gap:10px;flex-wrap:wrap}
+.opt{flex:1;min-width:120px;padding:12px;border:2px solid var(--line);background:var(--panel);border-radius:var(--r);font-weight:600;text-align:center}
+.opt[aria-pressed="true"].o-Incluir{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+.opt[aria-pressed="true"].o-Excluir{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.opt[aria-pressed="true"].o-Dúvida{border-color:var(--warn);background:var(--warn-soft);color:var(--warn)}
+.opt:disabled{cursor:not-allowed;opacity:.7}
+textarea{width:100%;min-height:72px;padding:9px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg);resize:vertical}
+.save{font-size:12px;color:var(--muted);min-height:1.2em}
+.save[data-s="err"]{color:var(--bad)}
+.nav{display:flex;gap:8px;flex-wrap:wrap}
+a.lk{color:var(--accent);font-weight:600}
+details summary{cursor:pointer;font-weight:600}
+details ul{margin:6px 0 0;padding-left:18px}
+.overlay{position:fixed;inset:0;z-index:25;background:var(--bg);overflow:auto;padding:calc(28px + env(safe-area-inset-top,0px)) 16px 32px;display:flex}
+.overlay .box{max-width:560px;width:100%;margin:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:14px}
+.overlay h2{margin:0;font-family:var(--f-read);font-weight:500;font-size:24px}
+.overlay p{margin:0;color:var(--muted);font-size:13px}
+.overlay label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.overlay label.ck{flex-direction:row;gap:8px;align-items:flex-start;font-size:13px;color:var(--ink)}
+.overlay input[type=text],.overlay input[type=email],.overlay input[type=password]{padding:9px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg);font-size:14px}
+.overlay fieldset{border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.err{color:var(--bad);font-size:13px;min-height:1em}
+.panel{padding:20px clamp(16px,3vw,32px) 40px;display:flex;flex-direction:column;gap:18px;overflow:auto;flex:1;min-height:0}
+.panel h2{margin:0;font-size:18px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.kpi b{font-family:var(--f-mono);font-weight:500;font-size:22px}.kpi span{font-size:11.5px;color:var(--muted)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;background:var(--panel);font-size:13px}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--soft);font-size:12px}
+@media (max-width:760px){
+  main{grid-template-columns:1fr}
+  .queue{border-right:0;border-bottom:1px solid var(--line);max-height:34vh}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Triagem iBTK</h1><span class="sub" id="sub">Conferência independente da triagem</span>
+  <div class="prog" id="prog" hidden><div class="bar"><i id="barfill"></i></div><b class="mono" id="progtxt"></b></div>
+  <span class="sp"></span>
+  <span class="sub" id="whoami"></span>
+  <button class="btn primary" id="finbtn" hidden>Finalizar triagem</button>
+  <a class="btn" id="voltar" href="index.html" hidden>Revisão dos achados</a>
+  <button class="btn" id="sairbtn" hidden>Sair</button>
+</header>
+<div class="notice" id="notice" hidden></div>
+
+<main id="desk" hidden>
+  <aside class="col queue" id="queue" aria-label="Artigos para triar"></aside>
+  <section class="col detail" id="detail" aria-live="polite"></section>
+</main>
+<section class="panel" id="panel" hidden></section>
+
+<section class="overlay" id="ov" hidden role="dialog" aria-modal="true"></section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script>if(!window.supabase)document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"><\/script>')</script>
+<script src="config.js?v=2"></script>
+<script>
+"use strict";
+const $=s=>document.querySelector(s);
+const el=(t,a={},...c)=>{const e=document.createElement(t);for(const[k,v]of Object.entries(a)){if(k==="class")e.className=v;else if(k==="text")e.textContent=v;else if(k==="html")throw new Error("sem innerHTML");else e.setAttribute(k,v)}for(const x of c.flat())if(x!=null)e.append(x.nodeType?x:document.createTextNode(String(x)));return e};
+const DEC=["Incluir","Excluir","Dúvida"];
+const VINC=[["beone","BeOne Medicines (zanubrutinibe)"],["astrazeneca","AstraZeneca (acalabrutinibe)"],["janssen_abbvie","Janssen ou AbbVie (ibrutinibe)"],["lilly","Eli Lilly (pirtobrutinibe)"]];
+const CFG=window.REVISAO_CONFIG||{};
+const configurado=()=>/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(CFG.url||"")&&(CFG.chave||"").length>30&&!!window.supabase;
+const S={uid:null,email:"",role:null,cad:null,perfil:null,perfilOk:false,itens:[],dec:{},fin:null,sel:null,timers:{}};
+let SB=null;
+const finalizada=()=>!!(S.fin&&S.fin.finalizado_em);
+const linkOk=l=>/^https:\/\/pubmed\.ncbi\.nlm\.nih\.gov\//.test(l||"");
+const fmt=iso=>new Date(iso).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",dateStyle:"short",timeStyle:"medium"});
+
+const BK={
+  async tudo(tab,filtro){const out=[];for(let i=0;;i+=1000){let q=SB.from(tab).select("*");if(filtro)q=q.eq(filtro[0],filtro[1]);
+    const {data,error}=await q.range(i,i+999);if(error)throw error;out.push(...data);if(data.length<1000)return out}},
+  async autor(){const {data,error}=await SB.rpc("is_autor");return !error&&data===true},
+  async cadastro(){const {data,error}=await SB.rpc("meu_cadastro_triador");return (!error&&data&&data[0])||null},
+  async fin(){const {data,error}=await SB.rpc("minha_finalizacao");if(error)throw error;return (data&&data[0])||{tem_codigo:false}},
+  async finsAutor(){const {data,error}=await SB.rpc("autor_finalizacoes");if(error)throw error;return data||[]},
+  async criarCodigo(c){const {error}=await SB.rpc("triagem_criar_codigo",{p_codigo:c});if(error)throw error},
+  async finalizar(c,total){const {data,error}=await SB.rpc("triagem_finalizar",{p_codigo:c,p_total_itens:total});if(error)throw error;return data},
+  async perfil(){const {data,error}=await SB.from("triagem_perfis").select("*").eq("user_id",S.uid).maybeSingle();if(error)throw error;return data},
+  async salvarPerfil(b){const {error}=await SB.from("triagem_perfis").upsert({...b,user_id:S.uid},{onConflict:"user_id"});if(error)throw error},
+  async salvarDecisao(n,d){const {error}=await SB.from("triagem_decisoes").upsert({user_id:S.uid,n,decisao:d.decisao||null,motivo:d.motivo||""},{onConflict:"user_id,n"});if(error)throw error}
+};
+
+function note(t,ok){const n=$("#notice");n.textContent=t;n.className="notice"+(ok?" ok":"");n.hidden=!t}
+function overlay(...c){const o=$("#ov");o.replaceChildren(el("div",{class:"box"},...c));o.hidden=false;[document.querySelector("header.top"),$("#desk"),$("#panel")].forEach(a=>{if(a)a.inert=true})}
+function fecharOverlay(){$("#ov").hidden=true;[document.querySelector("header.top"),$("#desk"),$("#panel")].forEach(a=>{if(a)a.inert=false})}
+
+/* ---------- entrada ---------- */
+function abrirLogin(){
+  const em=el("input",{type:"email",id:"l-em",autocomplete:"username",required:"required"});
+  const se=el("input",{type:"password",id:"l-se",autocomplete:"current-password",required:"required"});
+  const err=el("p",{class:"err",role:"alert"});const go=el("button",{class:"btn primary",type:"submit",text:"Entrar"});
+  const f=el("form",{novalidate:"novalidate",style:"display:flex;flex-direction:column;gap:14px"},
+    el("h2",{text:"Entrar na triagem"}),
+    el("p",{text:"Use o e-mail e a senha que o autor enviou junto com o convite."}),
+    el("label",{for:"l-em"},"E-mail",em),el("label",{for:"l-se"},"Senha",se),err,go);
+  f.addEventListener("submit",async e=>{e.preventDefault();go.disabled=true;err.textContent="";
+    try{const {data,error}=await SB.auth.signInWithPassword({email:em.value.trim(),password:se.value});
+      if(error){err.textContent=/invalid/i.test(error.message||"")?"E-mail ou senha incorretos.":"Não foi possível entrar: "+error.message;return}
+      fecharOverlay();await iniciar(data.user)}
+    catch(x){err.textContent="Não foi possível concluir: "+(x.message||x)}finally{go.disabled=false}});
+  overlay(f);em.focus();
+}
+function exigirNovaSenha(){return new Promise(res=>{
+  const a=el("input",{type:"password",id:"ns-a",autocomplete:"new-password",minlength:"12"});
+  const b=el("input",{type:"password",id:"ns-b",autocomplete:"new-password",minlength:"12"});
+  const err=el("p",{class:"err",role:"alert"});const go=el("button",{class:"btn primary",type:"submit",text:"Salvar e continuar"});
+  const sair=el("button",{class:"btn",type:"button",text:"Sair"});sair.onclick=()=>sairSessao();
+  const f=el("form",{novalidate:"novalidate",style:"display:flex;flex-direction:column;gap:14px"},
+    el("h2",{text:"Defina a sua senha pessoal"}),
+    el("p",{text:"A senha enviada com o convite é temporária. Escolha agora uma senha só sua, com pelo menos 12 caracteres; uma frase com números funciona bem. Você só faz isso uma vez."}),
+    el("label",{for:"ns-a"},"Nova senha",a),el("label",{for:"ns-b"},"Repita a nova senha",b),err,el("div",{style:"display:flex;gap:10px"},go,sair));
+  f.addEventListener("submit",async e=>{e.preventDefault();
+    if(a.value.length<12){err.textContent="Use pelo menos 12 caracteres.";return}
+    if(a.value!==b.value){err.textContent="As duas senhas não são iguais.";return}
+    if(/hematologia|1234|senha/i.test(a.value)||a.value.toLowerCase().includes((S.email||"").split("@")[0].toLowerCase())){err.textContent="Escolha uma senha menos previsível: sem sequências como 1234, “senha” ou o seu e-mail.";return}
+    go.disabled=true;err.textContent="";
+    try{const {error}=await SB.auth.updateUser({password:a.value,data:{senha_trocada:true,senha_trocada_em:new Date().toISOString()}});if(error)throw error;fecharOverlay();res()}
+    catch(x){err.textContent="Não foi possível salvar a senha: "+(x.message||x)}finally{go.disabled=false}});
+  overlay(f);a.focus()})}
+async function sairSessao(){try{await SB.auth.signOut()}catch(e){}location.reload()}
+$("#sairbtn").onclick=sairSessao;
+
+/* ---------- declaração de vínculos ---------- */
+function abrirDeclaracao(){
+  const p=S.perfil||{};const v=p.vinculos||{};
+  const vk=VINC.map(([k,l])=>{const c=el("input",{type:"checkbox",id:"v-"+k});c.checked=!!v[k];return el("label",{class:"ck",for:"v-"+k},c,l)});
+  const nenhum=el("input",{type:"checkbox",id:"v-nenhum"});nenhum.checked=!!p.sem_vinculos;
+  const tipo=el("textarea",{id:"o-tipo",placeholder:"Ex.: palestrante, consultoria, pesquisa clínica; período"});tipo.value=p.tipo_vinculo||"";
+  const decl=el("input",{type:"checkbox",id:"o-decl"});
+  const err=el("p",{class:"err",role:"alert"});const go=el("button",{class:"btn primary",text:"Começar a triagem"});
+  const check=()=>{go.disabled=!(decl.checked&&(nenhum.checked||VINC.some(([k])=>document.getElementById("v-"+k).checked)))};
+  go.disabled=true;
+  setTimeout(()=>{VINC.forEach(([k])=>document.getElementById("v-"+k).addEventListener("change",()=>{if(document.getElementById("v-"+k).checked)nenhum.checked=false;check()}));
+    nenhum.addEventListener("change",()=>{if(nenhum.checked)VINC.forEach(([k])=>document.getElementById("v-"+k).checked=false);check()});decl.addEventListener("change",check);check()},0);
+  go.onclick=async()=>{go.disabled=true;go.textContent="Salvando…";
+    const body={nome:S.cad.nome,crf:S.cad.crf,vinculos:Object.fromEntries(VINC.map(([k])=>[k,document.getElementById("v-"+k).checked])),
+      sem_vinculos:nenhum.checked,tipo_vinculo:tipo.value.trim(),declaracao:true};
+    try{await BK.salvarPerfil(body);S.perfil=body;S.perfilOk=true;fecharOverlay();await posCadastro()}
+    catch(e){go.disabled=false;go.textContent="Tentar de novo";err.textContent="Não foi possível salvar. Se persistir, avise o autor."}};
+  overlay(el("h2",{text:"Antes de começar: declaração de vínculos"}),
+    el("p",{text:"Olá, "+S.cad.nome+". A ferramenta declara os vínculos do autor com fabricantes, e a mesma transparência vale para quem confere a triagem. Ter vínculo não impede a participação; ele só precisa ficar registrado."}),
+    el("fieldset",{},el("legend",{text:"Vínculos com fabricantes de iBTK nos últimos 3 anos"}),vk,el("label",{class:"ck",for:"v-nenhum"},nenhum,"Nenhum vínculo com esses fabricantes"),
+      el("label",{for:"o-tipo"},"Tipo de vínculo (se houver)",tipo)),
+    el("label",{class:"ck",for:"o-decl"},decl,"Declaro que as informações acima são verdadeiras e que minha triagem é independente: decido só pelo título, pelo resumo e pelo critério, sem considerar o interesse de nenhum fabricante."),
+    err,go);
+}
+
+/* ---------- código de finalização ---------- */
+function abrirCodigo(){
+  const a=el("input",{type:"password",id:"c-a",autocomplete:"new-password"}),b=el("input",{type:"password",id:"c-b",autocomplete:"new-password"});
+  const ok=el("input",{type:"checkbox",id:"c-ok"});const err=el("p",{class:"err",role:"alert"});const go=el("button",{class:"btn primary",text:"Criar código e continuar"});go.disabled=true;
+  const chk=()=>{go.disabled=!(a.value.length>=8&&a.value===b.value&&ok.checked)};[a,b,ok].forEach(x=>x.addEventListener("input",chk));
+  go.onclick=async()=>{go.disabled=true;err.textContent="";try{await BK.criarCodigo(a.value);S.fin=await BK.fin();fecharOverlay();montarTriador()}
+    catch(e){err.textContent="Não foi possível criar o código: "+(e.message||e);chk()}};
+  overlay(el("h2",{text:"Crie o seu código de finalização"}),
+    el("p",{text:"Este código é diferente da senha de login e serve só para encerrar a triagem. Ao finalizar, suas decisões ficam travadas: ninguém, nem o autor, consegue alterá-las, e você recebe um e-mail com data e hora. Guarde o código; ele é guardado cifrado e não pode ser recuperado."}),
+    el("label",{for:"c-a"},"Código (pelo menos 8 caracteres)",a),el("label",{for:"c-b"},"Repita o código",b),
+    el("label",{class:"ck",for:"c-ok"},ok,"Entendi que finalizar é definitivo."),err,go);
+}
+function abrirFinal(){
+  const falt=S.itens.filter(i=>!(S.dec[i.n]&&S.dec[i.n].decisao));
+  const semMotivo=S.itens.filter(i=>{const d=S.dec[i.n];return d&&(d.decisao==="Excluir"||d.decisao==="Dúvida")&&!(d.motivo||"").trim()});
+  const fechar=el("button",{class:"btn",type:"button",text:"Voltar à triagem"});fechar.onclick=fecharOverlay;
+  if(falt.length||semMotivo.length){
+    overlay(el("h2",{text:"Ainda falta um pouco"}),
+      falt.length?el("p",{text:"Sem decisão: artigos "+falt.map(i=>i.n).join(", ")+"."}):null,
+      semMotivo.length?el("p",{text:"Excluir ou Dúvida sem motivo: artigos "+semMotivo.map(i=>i.n).join(", ")+"."}):null,fechar);return}
+  const c=el("input",{type:"password",id:"f-c",autocomplete:"off"});const ok=el("input",{type:"checkbox",id:"f-ok"});
+  const err=el("p",{class:"err",role:"alert"});const go=el("button",{class:"btn primary",text:"Finalizar definitivamente"});go.disabled=true;
+  const chk=()=>{go.disabled=!(c.value.length>=1&&ok.checked)};[c,ok].forEach(x=>x.addEventListener("input",chk));
+  go.onclick=async()=>{go.disabled=true;err.textContent="";
+    try{const r=await BK.finalizar(c.value,S.itens.length);
+      if(r&&r.ok){S.fin=await BK.fin();fecharOverlay();montarTriador();note("Triagem finalizada em "+fmt(r.finalizado_em)+". Obrigado!",true)}
+      else{const m=(r&&r.motivo)||"erro";err.textContent=m==="codigo_incorreto"?"Código incorreto. Tentativas restantes: "+r.restantes+".":m==="bloqueado"?"Bloqueado por tentativas erradas. Fale com o autor.":m==="ja_finalizada"?"Esta triagem já foi finalizada.":"Não foi possível finalizar.";chk()}}
+    catch(e){err.textContent="Não foi possível finalizar: "+(e.message||e);chk()}};
+  overlay(el("h2",{text:"Finalizar a triagem"}),
+    el("p",{text:"Você decidiu "+S.itens.length+" de "+S.itens.length+" artigos. Depois de finalizar, nada mais pode ser alterado."}),
+    el("label",{for:"f-c"},"Seu código de finalização",c),el("label",{class:"ck",for:"f-ok"},ok,"Confirmo que revisei minhas decisões e quero finalizar."),err,el("div",{style:"display:flex;gap:10px"},go,fechar));
+}
+$("#finbtn").onclick=abrirFinal;
+
+/* ---------- tela do triador ---------- */
+function contar(){return S.itens.filter(i=>S.dec[i.n]&&S.dec[i.n].decisao).length}
+function progresso(){const n=contar(),t=S.itens.length;$("#progtxt").textContent=n+" de "+t;$("#barfill").style.width=(t?100*n/t:0)+"%"}
+function pill(d){return el("span",{class:"pill "+(d?"p-"+d:"p-pend"),text:d||"Pendente"})}
+function lista(){
+  $("#queue").replaceChildren(...S.itens.map(i=>{
+    const d=S.dec[i.n]&&S.dec[i.n].decisao;
+    const b=el("button",{class:"item",type:"button"},el("span",{class:"n",text:String(i.n)}),el("span",{class:"t",text:i.titulo}),pill(d));
+    if(S.sel===i.n)b.setAttribute("aria-current","true");b.onclick=()=>selecionar(i.n);return b}))}
+function selecionar(n){S.sel=n;lista();detalhe();try{sessionStorage.setItem("tri-sel",String(n))}catch(e){}}
+function setSave(s,t){const n=$("#save");if(n){n.dataset.s=s;n.textContent=t}}
+function gravar(n){
+  clearTimeout(S.timers[n]);S.timers[n]=setTimeout(async()=>{
+    setSave("","Salvando…");
+    try{await BK.salvarDecisao(n,S.dec[n]||{});setSave("ok","Salvo.")}
+    catch(e){setSave("err","Não foi possível salvar: "+(/finalizad|travad/i.test(e.message||"")?"a triagem já foi finalizada.":"confira sua conexão e tente de novo."))}},350)}
+function detalhe(){
+  const i=S.itens.find(x=>x.n===S.sel);const box=$("#detail");
+  if(!i){box.replaceChildren(criterio(true));return}
+  const d=S.dec[i.n]||{};const trava=finalizada();
+  const motivo=el("textarea",{id:"motivo","aria-label":"Motivo",placeholder:d.decisao==="Dúvida"?"O que falta para decidir? (ex.: o resumo não diz se há conduta após intolerância)":"Motivo em uma frase (obrigatório para Excluir e Dúvida)"});
+  motivo.value=d.motivo||"";motivo.disabled=trava;
+  motivo.addEventListener("input",()=>{S.dec[i.n]={...(S.dec[i.n]||{}),motivo:motivo.value};gravar(i.n)});
+  const opts=el("div",{class:"opts",role:"group","aria-label":"Decisão"},...DEC.map(k=>{
+    const b=el("button",{type:"button",class:"opt o-"+k,"aria-pressed":d.decisao===k?"true":"false",text:k});b.disabled=trava;
+    b.onclick=()=>{S.dec[i.n]={...(S.dec[i.n]||{}),decisao:k};progresso();lista();detalhe();gravar(i.n)};return b}));
+  const idx=S.itens.findIndex(x=>x.n===i.n);
+  const ant=el("button",{class:"btn",type:"button",text:"← Anterior"});ant.disabled=idx<=0;ant.onclick=()=>selecionar(S.itens[idx-1].n);
+  const prox=el("button",{class:"btn",type:"button",text:"Próximo →"});prox.disabled=idx>=S.itens.length-1;prox.onclick=()=>selecionar(S.itens[idx+1].n);
+  const pend=el("button",{class:"btn",type:"button",text:"Próximo pendente"});pend.onclick=()=>{const p=[...S.itens.slice(idx+1),...S.itens.slice(0,idx)].find(x=>!(S.dec[x.n]&&S.dec[x.n].decisao));if(p)selecionar(p.n)};
+  box.replaceChildren(
+    el("div",{},el("span",{class:"mono",style:"color:var(--muted)",text:"Artigo "+i.n+" de "+S.itens.length+(i.pmid?" · PMID "+i.pmid:"")})),
+    el("h2",{text:i.titulo}),
+    el("div",{class:"card"},el("h3",{text:"1. Leia o título e o resumo"}),
+      linkOk(i.link)?el("p",{},el("a",{class:"lk",href:i.link,target:"_blank",rel:"noopener noreferrer",text:"Abrir no PubMed ↗"}),"  (abre em outra aba; o texto completo não é necessário)"):el("p",{text:"Link indisponível."})),
+    el("div",{class:"card"},el("h3",{text:"2. Decida"}),opts,el("p",{style:"margin-top:10px"},el("label",{for:"motivo",style:"font-size:12px;color:var(--muted)",text:"Motivo / o que falta"})),motivo,el("p",{class:"save",id:"save","data-s":""})),
+    el("div",{class:"nav"},ant,prox,pend),
+    criterio(false));
+}
+function criterio(aberto){
+  const d=el("details",{class:"card"});if(aberto)d.open=true;
+  d.append(el("summary",{text:"Critério resumido (a ferramenta consulta evidência em LLC/LLPC para ibrutinibe, acalabrutinibe, zanubrutinibe e pirtobrutinibe)"}),
+    el("ul",{},
+      el("li",{},el("b",{text:"A. Conduta diante de evento adverso: "}),"Incluir se o artigo traz orientação de manejo de evento adverso de iBTK em LLC/LLPC (suporte, ajuste de dose, troca de iBTK ou de classe), ou dado clínico sobre a troca após intolerância. Excluir se for outra doença ou indicação, estudo pré-clínico, química medicinal, revisão sem orientação de manejo, ou só a frequência do evento sem conduta."),
+      el("li",{},el("b",{text:"B. Seletividade: "}),"Incluir se traz dado de potência ou seletividade de quinases de um ou mais iBTK (ensaio bioquímico ou celular)."),
+      el("li",{},el("b",{text:"Dúvida: "}),"o resumo não basta e seria preciso o texto completo; diga o que falta.")),
+    el("p",{style:"font-size:12px;color:var(--muted)",text:"A decisão do autor não aparece aqui, de propósito: a conferência só vale se for independente."}));
+  return d;
+}
+function montarTriador(){
+  $("#sub").textContent="Conferência independente da triagem";$("#prog").hidden=false;
+  $("#desk").hidden=false;$("#panel").hidden=true;
+  $("#finbtn").hidden=finalizada();
+  progresso();
+  if(finalizada())note("Triagem finalizada em "+fmt(S.fin.finalizado_em)+". As decisões estão travadas. Impressão digital (SHA-256): "+S.fin.hash_decisoes,true);else note("");
+  let sel=null;try{sel=parseInt(sessionStorage.getItem("tri-sel")||"",10)}catch(e){}
+  S.sel=S.itens.some(x=>x.n===sel)?sel:((S.itens.find(x=>!(S.dec[x.n]&&S.dec[x.n].decisao))||S.itens[0]||{}).n||null);
+  lista();detalhe();
+}
+async function posCadastro(){
+  S.fin=await BK.fin();
+  if(!S.fin.tem_codigo){abrirCodigo();return}
+  montarTriador();
+}
+
+/* ---------- painel do autor ---------- */
+const pct=(a,b)=>b?Math.round(1000*a/b)/10+"%":"—";
+function kappaBin(a,b,c,d){const N=a+b+c+d;if(!N)return null;const po=(a+d)/N,pe=((a+b)*(a+c)+(c+d)*(b+d))/(N*N);return pe===1?null:(po-pe)/(1-pe)}
+function nivel(k){return k==null?"":k<0.2?"fraca":k<0.4?"razoável":k<0.6?"moderada":k<0.8?"substancial":"quase perfeita"}
+function csvCel(v){v=String(v==null?"":v);if(/^[=+\-@\t\r]/.test(v))v="'"+v;return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function baixar(nome,linhas){const b=new Blob(["﻿"+linhas.map(l=>l.map(csvCel).join(";")).join("\r\n")],{type:"text/csv;charset=utf-8"});const a=el("a",{href:URL.createObjectURL(b),download:nome});document.body.append(a);a.click();a.remove()}
+async function montarAutor(){
+  $("#sub").textContent="Painel do autor · conferência da triagem";$("#voltar").hidden=false;
+  const root=$("#panel");root.hidden=false;$("#desk").hidden=true;root.replaceChildren(el("p",{text:"Carregando…"}));
+  let perfis,decs,gab,fins={};
+  try{[perfis,decs,gab]=await Promise.all([BK.tudo("triagem_perfis"),BK.tudo("triagem_decisoes"),BK.tudo("triagem_gabarito")]);
+    try{for(const f of await BK.finsAutor())fins[f.user_id]=f}catch(e){}}
+  catch(e){root.replaceChildren(el("p",{class:"err",text:"Não foi possível ler os dados: "+(e.message||e)+". Confirme que rodou supabase_triagem.sql e supabase_triagem_amostra.sql."}));return}
+  const G={};for(const g of gab)G[g.n]=g;
+  const porUser={};for(const d of decs)(porUser[d.user_id]||={})[d.n]=d;
+  const itens=S.itens;const sec=[];
+  sec.push(el("h2",{text:"Conferência da triagem"}));
+  if(!perfis.length)sec.push(el("div",{class:"card"},el("p",{text:"Nenhum triador cadastrou a declaração de vínculos ainda."}),
+    el("p",{text:"Para convidar: insira o e-mail em triadores_autorizados, crie o usuário em Authentication > Users e envie o link desta página."})));
+  const linhasCsv=[["triador","n","pmid","titulo","autor","triador_decisao","triador_motivo","concordou"]];
+  for(const p of perfis){
+    const m=porUser[p.user_id]||{};const f=fins[p.user_id];
+    let ex=0,a=0,b=0,c=0,d=0,N=0;const div=[];
+    for(const i of itens){const t=m[i.n]&&m[i.n].decisao;const g=G[i.n];if(!t||!g)continue;N++;
+      if(t===g.decisao)ex++;else div.push([i,g,m[i.n]]);
+      const ai=g.decisao==="Incluir",ti=t==="Incluir";if(ai&&ti)a++;else if(ai)b++;else if(ti)c++;else d++;
+      linhasCsv.push([p.nome,i.n,i.pmid,i.titulo,g.decisao,t,m[i.n].motivo,t===g.decisao?"sim":"não"])}
+    const k=kappaBin(a,b,c,d);
+    sec.push(el("h2",{text:p.nome+" · "+p.crf}));
+    sec.push(el("div",{class:"kpis"},
+      ...[[N+" de "+itens.length,"artigos decididos"],[f&&f.finalizado_em?"Finalizada":"Em andamento",f&&f.finalizado_em?fmt(f.finalizado_em):"sem finalização"],
+        [pct(ex,N),"concordância simples (3 categorias)"],[k==null?"—":k.toFixed(2),"kappa (Incluir × não incluir)"+(k==null?"":" · "+nivel(k))],[String(div.length),"divergências"]]
+        .map(([v,l])=>el("div",{class:"kpi"},el("b",{text:v}),el("span",{text:l})))));
+    sec.push(el("p",{class:"mono",style:"font-size:12px;color:var(--muted)",text:"Binário: ambos incluem "+a+" · só você inclui "+b+" · só o(a) triador(a) inclui "+c+" · ambos não incluem "+d+(f&&f.finalizado_em?" · hash "+f.hash_decisoes:"")}));
+    if(!(f&&f.finalizado_em))sec.push(el("p",{style:"color:var(--warn);font-size:13px",text:"Triagem ainda não finalizada: os números são parciais e podem mudar."}));
+    if(div.length)sec.push(el("div",{class:"tw"},el("table",{},el("thead",{},el("tr",{},...["Nº","Título","Você","Triador(a)","Motivo do(a) triador(a)","Seu motivo"].map(h=>el("th",{text:h})))),
+      el("tbody",{},...div.map(([i,g,t])=>el("tr",{},el("td",{class:"mono",text:String(i.n)}),el("td",{},linkOk(i.link)?el("a",{class:"lk",href:i.link,target:"_blank",rel:"noopener noreferrer",text:i.titulo}):i.titulo),
+        el("td",{},pill(g.decisao)),el("td",{},pill(t.decisao)),el("td",{text:t.motivo||""}),el("td",{text:g.motivo||""})))))));
+    else if(N)sec.push(el("p",{text:"Sem divergências nos artigos decididos."}));
+  }
+  const exp=el("button",{class:"btn",type:"button",text:"Exportar comparação (CSV)"});exp.disabled=linhasCsv.length<2;exp.onclick=()=>baixar("triagem_comparacao_"+new Date().toISOString().slice(0,10)+".csv",linhasCsv);
+  sec.push(el("div",{},exp));
+  sec.push(el("p",{style:"font-size:12px;color:var(--muted)",text:"Limite: a amostra tem "+itens.length+" artigos e não inclui os registros excluídos em bloco por título. Pendentes entram no gabarito como Dúvida. O kappa é binário (Incluir × não incluir); com poucos artigos o intervalo de confiança é largo."}));
+  root.replaceChildren(...sec);
+}
+
+/* ---------- partida ---------- */
+async function iniciar(u){
+  S.uid=u.id;S.email=u.email||"";$("#whoami").textContent=S.email;$("#sairbtn").hidden=false;
+  try{
+    const autor=await BK.autor();
+    if(autor){S.role="autor";S.itens=(await BK.tudo("triagem_itens")).sort((x,y)=>x.n-y.n);await montarAutor();return}
+    S.cad=await BK.cadastro();
+    if(!S.cad){S.role="negado";note("Este e-mail não está na lista de triadores autorizados. Fale com o autor.");return}
+    S.role="triador";
+    if(!(u.user_metadata&&u.user_metadata.senha_trocada))await exigirNovaSenha();
+    S.itens=(await BK.tudo("triagem_itens")).sort((x,y)=>x.n-y.n);
+    if(!S.itens.length){note("A amostra ainda não foi carregada. Avise o autor.");return}
+    for(const d of await BK.tudo("triagem_decisoes",["user_id",S.uid]))S.dec[d.n]={decisao:d.decisao,motivo:d.motivo};
+    S.perfil=await BK.perfil();S.perfilOk=!!(S.perfil&&S.perfil.declaracao);
+    if(!S.perfilOk){abrirDeclaracao();return}
+    await posCadastro();
+  }catch(e){note("Entrou, mas não foi possível ler seus dados: "+(e.message||e)+". Se o problema persistir, avise o autor.")}
+}
+(async()=>{
+  if(!configurado()){note("Não foi possível carregar a biblioteca do banco de dados ou o config.js. Recarregue com Ctrl+F5; se persistir, avise o autor.");return}
+  SB=supabase.createClient(CFG.url,CFG.chave);
+  const {data}=await SB.auth.getSession();
+  if(data&&data.session)await iniciar(data.session.user);else abrirLogin();
+})();
+</script>
+</body>
+</html>

@@ -109,3 +109,12 @@ Página à parte, `triagem.html`, no mesmo projeto Supabase e com o mesmo login.
 5. Você abre `.../triagem.html` com o seu login e vê concordância, kappa e divergências por triador, com exportação em CSV.
 
 Garantias no banco: o gabarito só é lido pelo autor; o triador lê só as próprias decisões; a finalização trava as decisões e gera hash e e-mail, como na revisão dos achados. A função de e-mail já trata `tipo = 'triagem'`; para o texto novo valer, publique de novo `notificar-finalizacao`.
+
+### Aviso de acesso (primeiro login de revisor ou triador)
+
+1. Rode `supabase_aviso_acesso.sql` no SQL Editor (cria `acessos_primeiro` e um gatilho em `auth.users`).
+2. `supabase functions deploy avisar-acesso --no-verify-jwt` (usa os mesmos segredos de `notificar-finalizacao`).
+3. Database > Webhooks > Create: tabela `acessos_primeiro`, evento **Insert**, Edge Function `avisar-acesso`, cabeçalho `x-webhook-secret` igual ao `WEBHOOK_SECRET`.
+4. Teste: entre com uma conta autorizada que nunca acessou (ou apague a linha dela em `acessos_primeiro` e entre de novo).
+
+O aviso sai uma vez por pessoa. O e-mail do próprio autor é ignorado.

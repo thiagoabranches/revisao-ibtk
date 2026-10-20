@@ -158,6 +158,14 @@ create trigger t_rs_hist_cons after insert or update on public.rs_consenso
 
 revoke all on public.rs_equipe, public.rs_estudos, public.rs_extracoes, public.rs_consenso, public.rs_historico from anon;
 
+-- Permissões explícitas: a partir de 30/10/2026 o Supabase não concede mais GRANT automático em tabelas novas de public.
+-- Só o que a página usa, e só para quem está autenticado; as políticas de RLS acima continuam valendo. Nada para anon.
+grant select, insert, update, delete on public.rs_equipe     to authenticated;  -- escrita só do autor, pela política
+grant select, insert, update, delete on public.rs_estudos    to authenticated;  -- idem
+grant select, insert, update         on public.rs_extracoes  to authenticated;
+grant select, insert, update         on public.rs_consenso   to authenticated;
+grant select                         on public.rs_historico  to authenticated;
+
 -- ---------------------------------------------------------------- dados iniciais
 insert into public.rs_equipe (email, papel) values ('thabranches@gmail.com', 'extrator')
   on conflict (email) do nothing;

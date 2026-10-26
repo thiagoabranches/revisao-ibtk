@@ -1,0 +1,34 @@
+# Evita que o projeto Supabase (plano gratuito) seja pausado por inatividade.
+# Roda segunda e quinta-feira e chama a função public.ping() (ver supabase_manutencao.sql).
+# Usa só a chave pública que já está em config.js; nenhum segredo é necessário.
+# Se falhar (por exemplo, projeto já pausado), o GitHub avisa por e-mail.
+name: Manter Supabase ativo
+
+on:
+  schedule:
+    - cron: "17 12 * * 1,4"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Chamar public.ping()
+        run: |
+          URL=$(grep -oE 'https://[a-z0-9]+\.supabase\.co' config.js | head -1)
+          KEY=$(grep -oE 'sb_publishable_[A-Za-z0-9_-]+' config.js | head -1)
+          [ -n "$URL" ] && [ -n "$KEY" ] || { echo "config.js sem URL ou chave"; exit 1; }
+          for i in 1 2 3; do
+            CODE=$(curl -sS -o resposta.txt -w "%{http_code}" -X POST "$URL/rest/v1/rpc/ping" \
+              -H "apikey: $KEY" -H "Content-Type: application/json" -d '{}') || CODE=000
+            echo "tentativa $i: HTTP $CODE"
+            if [ "$CODE" = "200" ]; then cat resposta.txt; echo; exit 0; fi
+            sleep 20
+          done
+          cat resposta.txt
+          echo "O projeto não respondeu. Verifique se está pausado no painel do Supabase."
+          exit 1

@@ -1,12 +1,12 @@
 # Evita que o projeto Supabase (plano gratuito) seja pausado por inatividade.
-# Roda segunda e quinta-feira e chama a função public.ping() (ver supabase_manutencao.sql).
+# Roda a cada 5 dias (dias 1, 6, 11, 16, 21, 26 e 31 do mês; o intervalo nunca passa de 5 dias) e chama a função public.ping() (ver supabase_manutencao.sql).
 # Usa só a chave pública que já está em config.js; nenhum segredo é necessário.
 # Se falhar (por exemplo, projeto já pausado), o GitHub avisa por e-mail.
 name: Manter Supabase ativo
 
 on:
   schedule:
-    - cron: "17 12 * * 1,4"
+    - cron: "17 12 */5 * *"
   workflow_dispatch:
 
 permissions:

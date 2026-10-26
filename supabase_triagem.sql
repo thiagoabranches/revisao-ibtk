@@ -179,6 +179,15 @@ create policy triagem_historico_ler on public.triagem_historico for select to au
 revoke all on public.triadores_autorizados, public.triagem_perfis, public.triagem_itens,
               public.triagem_gabarito, public.triagem_decisoes, public.triagem_historico from anon;
 
+-- Permissões explícitas: a partir de 30/10/2026 o Supabase não concede mais GRANT automático em tabelas novas de public.
+-- Só o que a página usa, e só para quem está autenticado; as políticas de RLS acima continuam valendo. Nada para anon.
+grant select, insert, update on public.triagem_perfis    to authenticated;
+grant select                 on public.triagem_itens     to authenticated;
+grant select                 on public.triagem_gabarito  to authenticated;  -- a política limita ao autor
+grant select, insert, update on public.triagem_decisoes  to authenticated;
+grant select                 on public.triagem_historico to authenticated;
+-- triadores_autorizados: sem GRANT, acessada só pelas funções.
+
 -- ---------------------------------------------------------------- finalização (mesma tabela da revisão)
 alter table public.finalizacoes add column if not exists tipo text not null default 'revisao';
 

@@ -121,4 +121,4 @@ O aviso sai uma vez por pessoa. O e-mail do próprio autor é ignorado.
 
 ## Manutenção: evitar a pausa do Supabase
 
-No plano gratuito o Supabase pausa o projeto após cerca de uma semana sem uso. Para evitar isso, o GitHub chama o projeto duas vezes por semana (`.github/workflows/manter-supabase-ativo.yml`). Para ativar, rode uma vez `supabase_manutencao.sql` no SQL Editor. Se o GitHub falhar na chamada, o dono do repositório recebe e-mail. Limite: o GitHub suspende agendamentos de repositório público após 60 dias sem nenhuma atividade; qualquer commit zera essa contagem.
+No plano gratuito o Supabase pausa o projeto após cerca de uma semana sem uso. Para evitar isso, o GitHub chama o projeto a cada 5 dias (dias 1, 6, 11, 16, 21, 26 e 31) (`.github/workflows/manter-supabase-ativo.yml`). Para ativar, rode uma vez `supabase_manutencao.sql` no SQL Editor. Se o GitHub falhar na chamada, o dono do repositório recebe e-mail. Limite: o GitHub suspende agendamentos de repositório público após 60 dias sem nenhuma atividade; qualquer commit zera essa contagem.

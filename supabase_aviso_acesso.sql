@@ -13,6 +13,8 @@ create table if not exists public.acessos_primeiro (
 );
 alter table public.acessos_primeiro enable row level security;
 revoke all on public.acessos_primeiro from anon, authenticated;   -- sem políticas: só o autor, pelo painel
+-- Permissões explícitas (Supabase, a partir de 30/10/2026): a Edge Function usa a chave de serviço.
+grant select, update on public.acessos_primeiro to service_role;
 
 create or replace function public.registrar_primeiro_acesso()
 returns trigger language plpgsql security definer set search_path = public as $$

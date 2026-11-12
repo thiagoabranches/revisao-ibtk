@@ -30,6 +30,9 @@ alter table public.finalizacoes enable row level security;
 -- Sem políticas: ninguém lê nem grava direto. Tudo passa pelas funções abaixo.
 revoke all on public.finalizacoes from anon, authenticated;
 
+-- Permissões explícitas (Supabase, a partir de 30/10/2026): a Edge Function notificar-finalizacao usa a chave de serviço.
+grant select, update on public.finalizacoes to service_role;
+
 -- ------------------------------------------------ o revisor consulta o próprio estado
 create or replace function public.minha_finalizacao()
 returns table (tem_codigo boolean, finalizado_em timestamptz, resumo jsonb, hash_decisoes text)

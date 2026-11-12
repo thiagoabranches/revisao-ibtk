@@ -169,6 +169,13 @@ create policy historico_ler on public.historico for select to authenticated
 
 revoke all on public.revisores_autorizados, public.autores, public.perfis, public.decisoes, public.historico from anon;
 
+-- Permissões explícitas: a partir de 30/10/2026 o Supabase não concede mais GRANT automático em tabelas novas de public.
+-- Só o que a página usa, e só para quem está autenticado; as políticas de RLS acima continuam valendo. Nada para anon.
+grant select, insert, update on public.perfis    to authenticated;
+grant select, insert, update on public.decisoes  to authenticated;
+grant select                 on public.historico to authenticated;
+-- autores e revisores_autorizados: sem GRANT, acessadas só pelas funções (security definer).
+
 -- ---------------------------------------------------------------- depois de rodar
 -- Cadastre o seu e-mail como autor (troque pelo seu):
 -- insert into public.autores (email) values ('seu-email@exemplo.com');

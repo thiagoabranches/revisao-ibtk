@@ -38,3 +38,7 @@ create policy pesquisas_criar on public.pesquisas for insert to authenticated
 
 revoke all on public.pesquisas from anon;
 revoke update, delete on public.pesquisas from authenticated;
+
+-- Permissões explícitas: a partir de 30/10/2026 o Supabase não concede mais GRANT automático em tabelas novas de public.
+-- Só o que a página usa, e só para quem está autenticado; as políticas de RLS acima continuam valendo. Nada para anon.
+grant select, insert on public.pesquisas to authenticated;
